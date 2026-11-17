@@ -1,0 +1,36 @@
+﻿@model portfolio.Models.Course
+
+@{
+    ViewData["Title"] = "Course Details";
+}
+
+<h1 class="mb-3">Course Details</h1>
+
+<div class="card card-body" style="max-width:36rem">
+
+    <dl class="row mb-3">
+
+        <dt class="col-4">Course ID</dt>
+        <dd class="col-8">@Model.course_id</dd>
+
+        <dt class="col-4">Course Code</dt>
+        <dd class="col-8">@Model.course_code</dd>
+
+        <dt class="col-4">Course Name</dt>
+        <dd class="col-8">@Model.course_name</dd>
+
+        <dt class="col-4">Description</dt>
+        <dd class="col-8">@(Model.description ?? "—")</dd>
+
+    </dl>
+
+    <div>
+        <a asp-action="Edit"
+           asp-route-id="@Model.course_id"
+           class="btn btn-primary">Edit</a>
+
+        <a asp-action="Index"
+           class="btn btn-secondary">Back to List</a>
+    </div>
+
+</div>

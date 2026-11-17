@@ -1,0 +1,49 @@
+﻿@model portfolio.Models.Course
+
+@{
+    ViewData["Title"] = "Delete a Course";
+}
+
+<h1 class="mb-3">Delete a Course</h1>
+
+@if (ViewBag.Error != null)
+{
+    <div class="alert alert-danger">@ViewBag.Error</div>
+}
+
+<div class="card card-body" style="max-width:36rem">
+
+    <p>Are you sure you want to delete this course?</p>
+
+    <dl class="row mb-3">
+
+        <dt class="col-4">ID</dt>
+        <dd class="col-8">@Model.course_id</dd>
+
+        <dt class="col-4">Course Code</dt>
+        <dd class="col-8">@Model.course_code</dd>
+
+        <dt class="col-4">Course Name</dt>
+        <dd class="col-8">@Model.course_name</dd>
+
+        <dt class="col-4">Description</dt>
+        <dd class="col-8">@(Model.description ?? "—")</dd>
+
+    </dl>
+
+    <p class="text-muted small">
+        This action permanently deletes the course.
+        Courses with existing projects cannot be deleted.
+    </p>
+
+    <form asp-action="Delete"
+          asp-route-id="@Model.course_id"
+          method="post">
+
+        @Html.AntiForgeryToken()
+
+        <button type="submit" class="btn btn-danger">Delete</button>
+        <a asp-action="Index" class="btn btn-link">Cancel</a>
+
+    </form>
+</div>

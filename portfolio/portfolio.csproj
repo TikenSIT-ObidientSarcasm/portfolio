@@ -12,8 +12,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="sql\" />
-    <Folder Include="Views\profile\" />
+    <Folder Include="Views\ProjectImage\" />
+    <Folder Include="Views\Project\" />
   </ItemGroup>
 
 </Project>
