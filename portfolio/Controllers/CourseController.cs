@@ -10,15 +10,31 @@ namespace portfolio.Controllers;
 public class CourseController : Controller
 {
     private readonly CourseRepository _courses;
+    private readonly ProjectRepository _projects;
 
-    public CourseController(CourseRepository courses)
+    public CourseController(
+        CourseRepository courses,
+        ProjectRepository projects)
     {
         _courses = courses;
+        _projects = projects;
     }
 
     public async Task<IActionResult> Index()
     {
-        return View(await _courses.GetAllAsync());
+        var courses = await _courses.GetAllAsync();
+
+        var projectCounts = new Dictionary<long, int>();
+
+        foreach (var course in courses)
+        {
+            var projects = await _projects.GetByCourseIdAsync(course.course_id);
+            projectCounts[course.course_id] = projects.Count;
+        }
+
+        ViewBag.ProjectCounts = projectCounts;
+
+        return View(courses);
     }
 
     public async Task<IActionResult> Details(long id)
@@ -27,6 +43,8 @@ public class CourseController : Controller
 
         if (course == null)
             return NotFound();
+
+        ViewBag.Projects = await _projects.GetByCourseIdAsync(id);
 
         return View(course);
     }
@@ -54,22 +72,19 @@ public class CourseController : Controller
         {
             ModelState.AddModelError(
                 "course_code",
-                "This course code already exists."
-            );
+                "This course code already exists.");
         }
         catch (PostgresException ex) when (ex.SqlState == "23514")
         {
             ModelState.AddModelError(
                 "",
-                "The course details do not satisfy the database rules."
-            );
+                "The course details do not satisfy the database rules.");
         }
         catch (Exception)
         {
             ModelState.AddModelError(
                 "",
-                "Something went wrong while saving the course."
-            );
+                "Something went wrong while saving the course.");
         }
 
         return View(course);
@@ -108,22 +123,19 @@ public class CourseController : Controller
         {
             ModelState.AddModelError(
                 "course_code",
-                "This course code is already being used."
-            );
+                "This course code is already being used.");
         }
         catch (PostgresException ex) when (ex.SqlState == "23514")
         {
             ModelState.AddModelError(
                 "",
-                "The course details do not satisfy the database rules."
-            );
+                "The course details do not satisfy the database rules.");
         }
         catch (Exception)
         {
             ModelState.AddModelError(
                 "",
-                "Something went wrong while updating the course."
-            );
+                "Something went wrong while updating the course.");
         }
 
         return View(course);
@@ -157,11 +169,14 @@ public class CourseController : Controller
         {
             ViewBag.Error =
                 "This course cannot be deleted because it still has projects.";
+
             return View("Delete", course);
         }
         catch (Exception)
         {
-            ViewBag.Error = "Something went wrong while deleting the course.";
+            ViewBag.Error =
+                "Something went wrong while deleting the course.";
+
             return View("Delete", course);
         }
     }
@@ -175,8 +190,7 @@ public class CourseController : Controller
         {
             ModelState.AddModelError(
                 "course_code",
-                "Use 2–30 letters, numbers, hyphens, or underscores."
-            );
+                "Use 2–30 letters, numbers, hyphens, or underscores.");
         }
 
         if (string.IsNullOrWhiteSpace(course.course_name) ||
@@ -184,8 +198,7 @@ public class CourseController : Controller
         {
             ModelState.AddModelError(
                 "course_name",
-                "Course name must contain at least 2 characters."
-            );
+                "Course name must contain at least 2 characters.");
         }
     }
 }

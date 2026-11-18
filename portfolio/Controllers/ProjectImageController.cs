@@ -23,13 +23,26 @@ public class ProjectImageController : Controller
 
     public async Task<IActionResult> Index()
     {
-        return View(await _projectImages.GetAllAsync());
+        var images = await _projectImages.GetAllAsync();
+        var projects = await _projects.GetAllAsync();
+
+        ViewBag.ProjectLookup = projects.ToDictionary(
+            p => p.project_id,
+            p => p);
+
+        return View(images);
     }
 
-    public async Task<IActionResult> Create()
+    public async Task<IActionResult> Details(long id)
     {
-        await LoadProjects();
-        return View(new ProjectImage());
+        var image = await _projectImages.GetByIdAsync(id);
+
+        if (image == null)
+            return NotFound();
+
+        ViewBag.Project = await _projects.GetByIdAsync(image.project_id);
+
+        return View(image);
     }
 
     [HttpPost]

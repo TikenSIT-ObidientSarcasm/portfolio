@@ -1,36 +1,89 @@
 ﻿@model portfolio.Models.Course
+@using portfolio.Models
 
 @{
-    ViewData["Title"] = "Course Details";
+    ViewData["Title"] = Model.course_name;
+    var projects = ViewBag.Projects as List<Project>
+                   ?? new List<Project>();
 }
 
-<h1 class="mb-3">Course Details</h1>
+<div class="portfolio-page">
 
-<div class="card card-body" style="max-width:36rem">
+    <a asp-action="Index" class="back-link">← Back to Courses</a>
 
-    <dl class="row mb-3">
+    <div class="details-header">
+        <div class="section-label">COURSE DETAILS</div>
+        <h1>@Model.course_name</h1>
+        <p>@Model.course_code</p>
+    </div>
 
-        <dt class="col-4">Course ID</dt>
-        <dd class="col-8">@Model.course_id</dd>
+    <section class="details-section">
+        <h2>About This Course</h2>
+        <p>@(Model.description ?? "No description provided.")</p>
+    </section>
 
-        <dt class="col-4">Course Code</dt>
-        <dd class="col-8">@Model.course_code</dd>
+    <section class="details-section">
 
-        <dt class="col-4">Course Name</dt>
-        <dd class="col-8">@Model.course_name</dd>
+        <div class="section-heading">
+            <div>
+                <div class="section-label">CONNECTED WORK</div>
+                <h2>Associated Projects</h2>
+            </div>
 
-        <dt class="col-4">Description</dt>
-        <dd class="col-8">@(Model.description ?? "—")</dd>
+            <span class="text-muted">
+                @projects.Count project(s)
+            </span>
+        </div>
 
-    </dl>
+        <div class="project-grid">
 
-    <div>
+            @if (projects.Any())
+            {
+                foreach (var project in projects)
+                {
+                    <article class="project-card">
+                        <div class="project-card-body">
+
+                            <h3>@project.project_title</h3>
+
+                            <p>
+                                @(project.description ?? "No description provided.")
+                            </p>
+
+                            <a asp-controller="Project"
+                               asp-action="Details"
+                               asp-route-id="@project.project_id"
+                               class="project-link">
+                                View Project →
+                            </a>
+
+                        </div>
+                    </article>
+                }
+            }
+            else
+            {
+                <div class="empty-projects">
+                    <h3>No connected projects</h3>
+                    <p>Projects assigned to this course will appear here.</p>
+                </div>
+            }
+
+        </div>
+    </section>
+
+    <div class="details-actions">
         <a asp-action="Edit"
            asp-route-id="@Model.course_id"
-           class="btn btn-primary">Edit</a>
+           class="btn-primary-custom">
+            Edit Course
+        </a>
 
-        <a asp-action="Index"
-           class="btn btn-secondary">Back to List</a>
+        <a asp-action="Delete"
+           asp-route-id="@Model.course_id"
+           class="btn-danger-custom">
+            Delete Course
+        </a>
     </div>
 
 </div>

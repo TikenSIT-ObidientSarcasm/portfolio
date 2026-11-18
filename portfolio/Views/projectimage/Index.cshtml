@@ -1,8 +1,110 @@
-﻿@{
+﻿@model List<portfolio.Models.ProjectImage>
+@using portfolio.Models
+@using System.Collections.Generic
+
+@{
     ViewData["Title"] = "Project Images";
+
+    var projects = ViewBag.ProjectLookup as Dictionary<long, Project>
+                   ?? new Dictionary<long, Project>();
 }
 
-<div class="text-center">
-    <h1 class="display-4">Project Images</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="portfolio-page">
+
+    <section class="hero">
+        <div class="eyebrow">VISUAL COLLECTION</div>
+        <h1>Project Images.</h1>
+        <p>
+            Browse the images uploaded for each project.
+            Every image is connected to its corresponding project.
+        </p>
+    </section>
+
+    <section class="section">
+
+        <div class="section-heading">
+            <div>
+                <div class="section-label">IMAGE GALLERY</div>
+                <h2>All Project Images</h2>
+                <p class="text-muted mb-0 mt-2">
+                    @Model.Count image(s) available
+                </p>
+            </div>
+
+            <a asp-action="Create" class="btn-primary-custom">
+                + Add Image
+            </a>
+        </div>
+
+        <div class="image-gallery">
+
+            @if (Model != null && Model.Any())
+            {
+                foreach (var image in Model)
+                {
+                    var project = projects.ContainsKey(image.project_id)
+                        ? projects[image.project_id]
+                        : null;
+
+                    <article class="image-card">
+
+                        <a asp-action="Details"
+                           asp-route-id="@image.image_id">
+                            <img src="@image.image_url"
+                                 alt="Project image" />
+                        </a>
+
+                        <div class="image-card-info">
+
+                            @if (project != null)
+                            {
+                                <h3>@project.project_title</h3>
+
+                                <a asp-controller="Project"
+                                   asp-action="Details"
+                                   asp-route-id="@project.project_id">
+                                    View Associated Project →
+                                </a>
+                            }
+                            else
+                            {
+                                <h3>Project unavailable</h3>
+                            }
+
+                            <div class="project-actions">
+                                <a asp-action="Details"
+                                   asp-route-id="@image.image_id">
+                                    View Image
+                                </a>
+
+                                <a asp-action="Edit"
+                                   asp-route-id="@image.image_id">
+                                    Edit
+                                </a>
+
+                                <a asp-action="Delete"
+                                   asp-route-id="@image.image_id"
+                                   class="delete-link">
+                                    Delete
+                                </a>
+                            </div>
+
+                        </div>
+                    </article>
+                }
+            }
+            else
+            {
+                <div class="empty-projects">
+                    <h3>No images yet</h3>
+                    <p>Uploaded project images will appear here.</p>
+
+                    <a asp-action="Create" class="btn-primary-custom">
+                        Add Your First Image
+                    </a>
+                </div>
+            }
+
+        </div>
+    </section>
 </div>

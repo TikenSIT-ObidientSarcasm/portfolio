@@ -1,0 +1,53 @@
+﻿@model portfolio.Models.ProjectImage
+@using portfolio.Models
+
+@{
+    ViewData["Title"] = "Image Details";
+    var project = ViewBag.Project as Project;
+}
+
+<div class="portfolio-page">
+
+    <a asp-action="Index" class="back-link">← Back to Project Images</a>
+
+    <div class="details-header">
+        <div class="section-label">IMAGE DETAILS</div>
+        <h1>Project Image</h1>
+    </div>
+
+    <div class="image-detail-preview">
+        <img src="@Model.image_url" alt="Project image" />
+    </div>
+
+    <section class="details-section">
+        <h2>Associated Project</h2>
+
+        @if (project != null)
+        {
+            <a asp-controller="Project"
+               asp-action="Details"
+               asp-route-id="@project.project_id">
+                @project.project_title →
+            </a>
+        }
+        else
+        {
+            <p>No associated project found.</p>
+        }
+    </section>
+
+    <div class="details-actions">
+        <a asp-action="Edit"
+           asp-route-id="@Model.image_id"
+           class="btn-primary-custom">
+            Edit Image
+        </a>
+
+        <a asp-action="Delete"
+           asp-route-id="@Model.image_id"
+           class="btn-danger-custom">
+            Delete Image
+        </a>
+    </div>
+
+</div>

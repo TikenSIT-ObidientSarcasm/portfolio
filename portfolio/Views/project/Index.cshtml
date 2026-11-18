@@ -1,8 +1,153 @@
-﻿@{
+﻿@model List<portfolio.Models.Project>
+@using portfolio.Models
+@using System.Collections.Generic
+
+@{
     ViewData["Title"] = "Projects";
+
+    var courses = ViewBag.CourseLookup as Dictionary<long, Course>
+                  ?? new Dictionary<long, Course>();
+
+    var projectImages = ViewBag.ProjectImages as Dictionary<long, List<ProjectImage>>
+                        ?? new Dictionary<long, List<ProjectImage>>();
 }
 
-<div class="text-center">
-    <h1 class="display-4">Projects</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="portfolio-page">
+
+    <section class="hero">
+        <div class="eyebrow">MY WORK & DEVELOPMENT</div>
+        <h1>Projects.</h1>
+        <p>
+            Explore my projects, applications, and other work.
+            Each project is connected to the course where it was developed.
+        </p>
+    </section>
+
+    <section class="section">
+
+        <div class="section-heading">
+            <div>
+                <div class="section-label">PORTFOLIO COLLECTION</div>
+                <h2>All Projects</h2>
+                <p class="text-muted mb-0 mt-2">
+                    @Model.Count project(s) available
+                </p>
+            </div>
+
+            <a asp-action="Create" class="btn-primary-custom">
+                + Add Project
+            </a>
+        </div>
+
+        <div class="project-grid">
+
+            @if (Model != null && Model.Any())
+            {
+                var number = 1;
+
+                foreach (var project in Model)
+                {
+                    var course = courses.ContainsKey(project.course_id)
+                        ? courses[project.course_id]
+                        : null;
+
+                    var images = projectImages.ContainsKey(project.project_id)
+                        ? projectImages[project.project_id]
+                        : new List<ProjectImage>();
+
+                    var firstImage = images.FirstOrDefault();
+
+                    <article class="project-card">
+
+                        @if (firstImage != null)
+                        {
+                            <a asp-action="Details"
+                               asp-route-id="@project.project_id">
+                                <img class="project-card-image"
+                                     src="@firstImage.image_url"
+                                     alt="@project.project_title" />
+                            </a>
+                        }
+                        else
+                        {
+                            <div class="project-card-placeholder">
+                                PROJECT @number.ToString("00")
+                            </div>
+                        }
+
+                        <div class="project-card-body">
+
+                            <div class="project-number">
+                                PROJECT / @number.ToString("00")
+                            </div>
+
+                            <h3>@project.project_title</h3>
+
+                            @if (course != null)
+                            {
+                                <div class="project-course">
+                                    @course.course_code
+                                </div>
+                            }
+
+                            <p>
+                                @(string.IsNullOrWhiteSpace(project.description)
+                                    ? "No description provided."
+                                    : project.description)
+                            </p>
+
+                            <div class="d-flex gap-2 flex-wrap mb-3">
+                                @if (images.Count > 0)
+                                {
+                                    <span class="text-muted small">
+                                        @images.Count image(s)
+                                    </span>
+                                }
+
+                                @if (!string.IsNullOrWhiteSpace(project.video_url))
+                                {
+                                    <span class="text-muted small">
+                                        · Video available
+                                    </span>
+                                }
+                            </div>
+
+                            <div class="project-actions">
+                                <a asp-action="Details"
+                                   asp-route-id="@project.project_id">
+                                    View Project →
+                                </a>
+
+                                <a asp-action="Edit"
+                                   asp-route-id="@project.project_id">
+                                    Edit
+                                </a>
+
+                                <a asp-action="Delete"
+                                   asp-route-id="@project.project_id"
+                                   class="delete-link">
+                                    Delete
+                                </a>
+                            </div>
+
+                        </div>
+                    </article>
+
+                    number++;
+                }
+            }
+            else
+            {
+                <div class="empty-projects">
+                    <h3>No projects yet</h3>
+                    <p>Your added projects will appear here.</p>
+
+                    <a asp-action="Create" class="btn-primary-custom">
+                        Add Your First Project
+                    </a>
+                </div>
+            }
+
+        </div>
+    </section>
 </div>

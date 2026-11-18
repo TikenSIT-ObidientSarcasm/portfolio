@@ -12,18 +12,35 @@ public class ProjectController : Controller
 {
     private readonly ProjectRepository _projects;
     private readonly CourseRepository _courses;
+    private readonly ProjectImageRepository _projectImages;
 
     public ProjectController(
         ProjectRepository projects,
-        CourseRepository courses)
+        CourseRepository courses,
+        ProjectImageRepository projectImages)
     {
         _projects = projects;
         _courses = courses;
+        _projectImages = projectImages;
     }
 
     public async Task<IActionResult> Index()
     {
-        return View(await _projects.GetAllAsync());
+        var projects = await _projects.GetAllAsync();
+        var courses = await _courses.GetAllAsync();
+        var images = await _projectImages.GetAllAsync();
+
+        ViewBag.CourseLookup = courses.ToDictionary(
+            c => c.course_id,
+            c => c);
+
+        ViewBag.ProjectImages = images
+            .GroupBy(i => i.project_id)
+            .ToDictionary(
+                group => group.Key,
+                group => group.ToList());
+
+        return View(projects);
     }
 
     public async Task<IActionResult> Details(long id)
@@ -32,6 +49,14 @@ public class ProjectController : Controller
 
         if (project == null)
             return NotFound();
+
+        ViewBag.Course = await _courses.GetByIdAsync(project.course_id);
+
+        var images = await _projectImages.GetAllAsync();
+
+        ViewBag.Images = images
+            .Where(i => i.project_id == id)
+            .ToList();
 
         return View(project);
     }
@@ -49,7 +74,8 @@ public class ProjectController : Controller
         string? ImageUrls)
     {
         var imageUrls = (ImageUrls ?? "")
-            .Split(new[] { "\r\n", "\n" },
+            .Split(
+                new[] { "\r\n", "\n" },
                 StringSplitOptions.RemoveEmptyEntries)
             .Select(url => url.Trim())
             .Where(url => url.Length > 0)
@@ -66,7 +92,6 @@ public class ProjectController : Controller
 
         try
         {
-            // Inserts the project and all its images in one transaction.
             await _projects.AddProjectWithImagesAsync(project, imageUrls);
 
             return RedirectToAction(nameof(Index));
@@ -75,33 +100,30 @@ public class ProjectController : Controller
         {
             ModelState.AddModelError(
                 "course_id",
-                "The selected course does not exist."
-            );
+                "The selected course does not exist.");
         }
         catch (PostgresException ex) when (ex.SqlState == "23505")
         {
             ModelState.AddModelError(
                 "ImageUrls",
-                "A duplicate image URL was found for this project."
-            );
+                "A duplicate image URL was found for this project.");
         }
         catch (PostgresException ex) when (ex.SqlState == "23514")
         {
             ModelState.AddModelError(
                 "",
-                "One or more project details do not satisfy the database rules."
-            );
+                "One or more project details do not satisfy the database rules.");
         }
         catch (Exception)
         {
             ModelState.AddModelError(
                 "",
-                "Something went wrong while saving the project."
-            );
+                "Something went wrong while saving the project.");
         }
 
         ViewData["ImageUrls"] = ImageUrls;
         await LoadCourses();
+
         return View(project);
     }
 
@@ -142,22 +164,19 @@ public class ProjectController : Controller
         {
             ModelState.AddModelError(
                 "course_id",
-                "The selected course does not exist."
-            );
+                "The selected course does not exist.");
         }
         catch (PostgresException ex) when (ex.SqlState == "23514")
         {
             ModelState.AddModelError(
                 "",
-                "The project details do not satisfy the database rules."
-            );
+                "The project details do not satisfy the database rules.");
         }
         catch (Exception)
         {
             ModelState.AddModelError(
                 "",
-                "Something went wrong while updating the project."
-            );
+                "Something went wrong while updating the project.");
         }
 
         await LoadCourses();
@@ -205,8 +224,7 @@ public class ProjectController : Controller
         ViewBag.Courses = new SelectList(
             courses,
             "course_id",
-            "course_name"
-        );
+            "course_name");
     }
 
     private void ValidateProject(
@@ -218,11 +236,9 @@ public class ProjectController : Controller
         {
             ModelState.AddModelError(
                 "project_title",
-                "Project title must contain at least 2 characters."
-            );
+                "Project title must contain at least 2 characters.");
         }
 
-        // Video URL regex
         if (!string.IsNullOrWhiteSpace(project.video_url) &&
             !Regex.IsMatch(
                 project.video_url.Trim(),
@@ -231,11 +247,9 @@ public class ProjectController : Controller
         {
             ModelState.AddModelError(
                 "video_url",
-                "Enter a valid URL beginning with http:// or https://."
-            );
+                "Enter a valid URL beginning with http:// or https://.");
         }
 
-        // Check every image URL separately.
         for (int i = 0; i < imageUrls.Count; i++)
         {
             if (!Regex.IsMatch(
@@ -245,8 +259,7 @@ public class ProjectController : Controller
             {
                 ModelState.AddModelError(
                     "ImageUrls",
-                    $"Image URL on line {i + 1} is invalid."
-                );
+                    $"Image URL on line {i + 1} is invalid.");
             }
         }
     }

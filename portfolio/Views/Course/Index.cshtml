@@ -1,8 +1,102 @@
-﻿@{
-    ViewData["Title"] = "Course";
+﻿@model List<portfolio.Models.Course>
+@using portfolio.Models
+
+@{
+    ViewData["Title"] = "Courses";
+
+    var projectCounts = ViewBag.ProjectCounts as Dictionary<long, int>
+                        ?? new Dictionary<long, int>();
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome to the Course Page</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="portfolio-page">
+
+    <section class="hero">
+        <div class="eyebrow">ACADEMIC COLLECTION</div>
+        <h1>Courses.</h1>
+        <p>
+            Browse the courses connected to my projects and academic work.
+        </p>
+    </section>
+
+    <section class="section">
+
+        <div class="section-heading">
+            <div>
+                <div class="section-label">COURSE DIRECTORY</div>
+                <h2>All Courses</h2>
+                <p class="text-muted mb-0 mt-2">
+                    @Model.Count course(s) available
+                </p>
+            </div>
+
+            <a asp-action="Create" class="btn-primary-custom">
+                + Add Course
+            </a>
+        </div>
+
+        <div class="course-grid">
+
+            @if (Model != null && Model.Any())
+            {
+                foreach (var course in Model)
+                {
+                    var count = projectCounts.ContainsKey(course.course_id)
+                        ? projectCounts[course.course_id]
+                        : 0;
+
+                    <article class="course-card">
+                        <div class="course-card-body">
+
+                            <div class="course-code">
+                                @course.course_code
+                            </div>
+
+                            <h3>@course.course_name</h3>
+
+                            <p>
+                                @(string.IsNullOrWhiteSpace(course.description)
+                                    ? "No course description provided."
+                                    : course.description)
+                            </p>
+
+                            <div class="course-project-count">
+                                @count connected project(s)
+                            </div>
+
+                            <div class="project-actions">
+                                <a asp-action="Details"
+                                   asp-route-id="@course.course_id">
+                                    View Course →
+                                </a>
+
+                                <a asp-action="Edit"
+                                   asp-route-id="@course.course_id">
+                                    Edit
+                                </a>
+
+                                <a asp-action="Delete"
+                                   asp-route-id="@course.course_id"
+                                   class="delete-link">
+                                    Delete
+                                </a>
+                            </div>
+
+                        </div>
+                    </article>
+                }
+            }
+            else
+            {
+                <div class="empty-projects">
+                    <h3>No courses yet</h3>
+                    <p>Added courses will appear here.</p>
+
+                    <a asp-action="Create" class="btn-primary-custom">
+                        Add Your First Course
+                    </a>
+                </div>
+            }
+
+        </div>
+    </section>
 </div>
