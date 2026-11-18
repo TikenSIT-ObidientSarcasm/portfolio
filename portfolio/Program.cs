@@ -7,7 +7,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews();
 
 var connectionString =
-    builder.Configuration.GetConnectionString("DefaultConnection")
+    builder.Configuration.GetConnectionString("portfolio")
     ?? throw new InvalidOperationException(
         "Database connection string was not found.");
 
@@ -33,6 +33,6 @@ app.UseAuthorization();
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}");
+    pattern: "{controller=Project}/{action=Index}/{id?}");
 
 app.Run();

@@ -4,66 +4,56 @@ using Npgsql;
 
 namespace portfolio.Data;
 
-public class ProjectRepository
+public class ProjectImageRepository
 {
     private readonly NpgsqlDataSource _dataSource;
 
-    public ProjectRepository(NpgsqlDataSource dataSource)
+    public ProjectImageRepository(NpgsqlDataSource dataSource)
     {
         _dataSource = dataSource;
     }
 
-    // Converts a database row into a Project object.
-    private static Project ReadProject(NpgsqlDataReader reader)
+    // Converts a database row into a ProjectImage object.
+    private static ProjectImage ReadProjectImage(
+        NpgsqlDataReader reader)
     {
-        return new Project
+        return new ProjectImage
         {
-            project_id = reader.GetInt64(0),
-            course_id = reader.GetInt64(1),
-            project_title = reader.GetString(2),
-            description = reader.IsDBNull(3)
-                ? null
-                : reader.GetString(3),
-            video_url = reader.IsDBNull(4)
-                ? null
-                : reader.GetString(4),
-            created_at = reader.IsDBNull(5)
-                ? null
-                : reader.GetDateTime(5)
+            image_id = reader.GetInt64(0),
+            project_id = reader.GetInt64(1),
+            image_url = reader.GetString(2)
         };
     }
 
-    // READ: Get all projects.
-    public async Task<List<Project>> GetAllAsync()
+    // READ: Get all project images.
+    public async Task<List<ProjectImage>> GetAllAsync()
     {
         const string sql = @"
-            SELECT project_id, course_id, project_title,
-                   description, video_url, created_at
-            FROM public.project
-            ORDER BY created_at DESC;
+            SELECT image_id, project_id, image_url
+            FROM public.project_image
+            ORDER BY image_id;
         ";
 
-        var projects = new List<Project>();
+        var images = new List<ProjectImage>();
 
         await using var command = _dataSource.CreateCommand(sql);
         await using var reader = await command.ExecuteReaderAsync();
 
         while (await reader.ReadAsync())
         {
-            projects.Add(ReadProject(reader));
+            images.Add(ReadProjectImage(reader));
         }
 
-        return projects;
+        return images;
     }
 
-    // READ: Get one project by ID.
-    public async Task<Project?> GetByIdAsync(long id)
+    // READ: Get one project image by ID.
+    public async Task<ProjectImage?> GetByIdAsync(long id)
     {
         const string sql = @"
-            SELECT project_id, course_id, project_title,
-                   description, video_url, created_at
-            FROM public.project
-            WHERE project_id = @id;
+            SELECT image_id, project_id, image_url
+            FROM public.project_image
+            WHERE image_id = @id;
         ";
 
         await using var command = _dataSource.CreateCommand(sql);
@@ -74,113 +64,64 @@ public class ProjectRepository
 
         if (await reader.ReadAsync())
         {
-            return ReadProject(reader);
+            return ReadProjectImage(reader);
         }
 
         return null;
     }
 
-    // READ: Get all projects belonging to a course.
-    public async Task<List<Project>> GetByCourseIdAsync(long courseId)
+    // CREATE: Add a project image.
+    public async Task AddAsync(ProjectImage projectImage)
     {
         const string sql = @"
-            SELECT project_id, course_id, project_title,
-                   description, video_url, created_at
-            FROM public.project
-            WHERE course_id = @courseId
-            ORDER BY created_at DESC;
-        ";
-
-        var projects = new List<Project>();
-
-        await using var command = _dataSource.CreateCommand(sql);
-
-        command.Parameters.AddWithValue("courseId", courseId);
-
-        await using var reader = await command.ExecuteReaderAsync();
-
-        while (await reader.ReadAsync())
-        {
-            projects.Add(ReadProject(reader));
-        }
-
-        return projects;
-    }
-
-    // CREATE: Add a project.
-    public async Task<long> AddAsync(Project project)
-    {
-        const string sql = @"
-            INSERT INTO public.project
-                (course_id, project_title, description, video_url)
+            INSERT INTO public.project_image
+                (project_id, image_url)
             VALUES
-                (@course_id, @project_title, @description, @video_url)
-            RETURNING project_id;
+                (@project_id, @image_url);
         ";
 
         await using var command = _dataSource.CreateCommand(sql);
 
         command.Parameters.AddWithValue(
-            "course_id", project.course_id);
+            "project_id", projectImage.project_id);
 
         command.Parameters.AddWithValue(
-            "project_title", project.project_title);
-
-        command.Parameters.AddWithValue(
-            "description",
-            (object?)project.description ?? DBNull.Value);
-
-        command.Parameters.AddWithValue(
-            "video_url",
-            (object?)project.video_url ?? DBNull.Value);
-
-        var result = await command.ExecuteScalarAsync();
-
-        return (long)result!;
-    }
-
-    // UPDATE: Edit an existing project.
-    public async Task UpdateAsync(Project project)
-    {
-        const string sql = @"
-            UPDATE public.project
-            SET
-                course_id = @course_id,
-                project_title = @project_title,
-                description = @description,
-                video_url = @video_url
-            WHERE project_id = @id;
-        ";
-
-        await using var command = _dataSource.CreateCommand(sql);
-
-        command.Parameters.AddWithValue(
-            "course_id", project.course_id);
-
-        command.Parameters.AddWithValue(
-            "project_title", project.project_title);
-
-        command.Parameters.AddWithValue(
-            "description",
-            (object?)project.description ?? DBNull.Value);
-
-        command.Parameters.AddWithValue(
-            "video_url",
-            (object?)project.video_url ?? DBNull.Value);
-
-        command.Parameters.AddWithValue(
-            "id", project.project_id);
+            "image_url", projectImage.image_url);
 
         await command.ExecuteNonQueryAsync();
     }
 
-    // DELETE: Remove a project.
-    // Its images are automatically deleted through ON DELETE CASCADE.
+    // UPDATE: Edit an existing project image.
+    public async Task UpdateAsync(ProjectImage projectImage)
+    {
+        const string sql = @"
+            UPDATE public.project_image
+            SET
+                project_id = @project_id,
+                image_url = @image_url
+            WHERE image_id = @id;
+        ";
+
+        await using var command = _dataSource.CreateCommand(sql);
+
+        command.Parameters.AddWithValue(
+            "project_id", projectImage.project_id);
+
+        command.Parameters.AddWithValue(
+            "image_url", projectImage.image_url);
+
+        command.Parameters.AddWithValue(
+            "id", projectImage.image_id);
+
+        await command.ExecuteNonQueryAsync();
+    }
+
+    // DELETE: Remove a project image.
     public async Task DeleteAsync(long id)
     {
         const string sql = @"
-            DELETE FROM public.project
-            WHERE project_id = @id;
+            DELETE FROM public.project_image
+            WHERE image_id = @id;
         ";
 
         await using var command = _dataSource.CreateCommand(sql);
@@ -188,81 +129,5 @@ public class ProjectRepository
         command.Parameters.AddWithValue("id", id);
 
         await command.ExecuteNonQueryAsync();
-    }
-
-    // CREATE: Add a project and all its images in ONE transaction.
-    // If any image insertion fails, everything is rolled back.
-    public async Task<long> AddProjectWithImagesAsync(
-        Project project,
-        List<string> imageUrls)
-    {
-        await using var connection =
-            await _dataSource.OpenConnectionAsync();
-
-        await using var transaction =
-            await connection.BeginTransactionAsync();
-
-        try
-        {
-            const string projectSql = @"
-                INSERT INTO public.project
-                    (course_id, project_title, description, video_url)
-                VALUES
-                    (@course_id, @project_title, @description, @video_url)
-                RETURNING project_id;
-            ";
-
-            long projectId;
-
-            await using (var command =
-                new NpgsqlCommand(projectSql, connection, transaction))
-            {
-                command.Parameters.AddWithValue(
-                    "course_id", project.course_id);
-
-                command.Parameters.AddWithValue(
-                    "project_title", project.project_title);
-
-                command.Parameters.AddWithValue(
-                    "description",
-                    (object?)project.description ?? DBNull.Value);
-
-                command.Parameters.AddWithValue(
-                    "video_url",
-                    (object?)project.video_url ?? DBNull.Value);
-
-                projectId = (long)(await command.ExecuteScalarAsync())!;
-            }
-
-            const string imageSql = @"
-                INSERT INTO public.project_image
-                    (project_id, image_url)
-                VALUES
-                    (@project_id, @image_url);
-            ";
-
-            foreach (string imageUrl in imageUrls)
-            {
-                await using var imageCommand =
-                    new NpgsqlCommand(imageSql, connection, transaction);
-
-                imageCommand.Parameters.AddWithValue(
-                    "project_id", projectId);
-
-                imageCommand.Parameters.AddWithValue(
-                    "image_url", imageUrl);
-
-                await imageCommand.ExecuteNonQueryAsync();
-            }
-
-            await transaction.CommitAsync();
-
-            return projectId;
-        }
-        catch
-        {
-            await transaction.RollbackAsync();
-            throw;
-        }
     }
 }

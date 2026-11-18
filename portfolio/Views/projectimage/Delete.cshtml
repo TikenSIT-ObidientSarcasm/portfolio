@@ -1,0 +1,40 @@
+﻿@model portfolio.Models.ProjectImage
+
+@{
+    ViewData["Title"] = "Delete a Project Image";
+}
+
+<h1 class="mb-3">Delete a Project Image</h1>
+
+@if (ViewBag.Error != null)
+{
+    <div class="alert alert-danger">@ViewBag.Error</div>
+}
+
+<div class="card card-body" style="max-width:36rem">
+
+    <p>Are you sure you want to delete this project image?</p>
+
+    <dl class="row mb-3">
+
+        <dt class="col-4">Image URL</dt>
+        <dd class="col-8">@Model.image_url</dd>
+
+    </dl>
+
+    <p class="text-muted small">
+        This action permanently deletes the project.
+        Projects with existing entries cannot be deleted.
+    </p>
+
+    <form asp-action="Delete"
+          asp-route-id="@Model.image_id"
+          method="post">
+
+        @Html.AntiForgeryToken()
+
+        <button type="submit" class="btn btn-danger">Delete</button>
+        <a asp-action="Index" class="btn btn-link">Cancel</a>
+
+    </form>
+</div>
