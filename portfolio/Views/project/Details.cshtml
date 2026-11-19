@@ -3,66 +3,106 @@
 
 @{
     ViewData["Title"] = Model.project_title;
-    var course = ViewBag.Course as Course;
+
     var images = ViewBag.Images as List<ProjectImage>
                  ?? new List<ProjectImage>();
+
+    var course = ViewBag.Course as Course;
 }
 
 <div class="portfolio-page">
 
-    <a asp-action="Index" class="back-link">← Back to Projects</a>
+    <section class="hero">
+        <div class="eyebrow">PROJECT DETAILS</div>
 
-    <div class="details-header">
-        <div class="section-label">PROJECT DETAILS</div>
-        <h1>@Model.project_title</h1>
+        <h1>@Model.project_title.</h1>
+
+        <p>
+            @(string.IsNullOrWhiteSpace(Model.description)
+                ? "No description provided."
+                : Model.description)
+        </p>
 
         @if (course != null)
         {
-            <p>
-                Course:
-                <a asp-controller="Course"
-                   asp-action="Details"
-                   asp-route-id="@course.course_id">
-                    @course.course_code — @course.course_name
-                </a>
-            </p>
-        }
-    </div>
-
-    <section class="details-section">
-        <h2>About This Project</h2>
-        <p>@(Model.description ?? "No description provided.")</p>
-    </section>
-
-    <section class="details-section">
-        <h2>Project Images</h2>
-
-        @if (images.Any())
-        {
-            <div class="image-gallery">
-                @foreach (var image in images)
-                {
-                    <article class="image-card">
-                        <a asp-controller="ProjectImage"
-                           asp-action="Details"
-                           asp-route-id="@image.image_id">
-                            <img src="@image.image_url"
-                                 alt="@Model.project_title" />
-                        </a>
-                    </article>
-                }
+            <div class="project-course">
+                @course.course_code
             </div>
         }
-        else
-        {
-            <p>No images have been added to this project.</p>
-        }
+    </section>
+
+    <section class="section">
+
+        <div class="section-heading">
+            <div>
+                <div class="section-label">PROJECT GALLERY</div>
+                <h2>Project Images</h2>
+
+                <p class="text-muted mt-2">
+                    @images.Count image(s)
+                </p>
+            </div>
+
+            <a asp-controller="ProjectImage"
+               asp-action="Create"
+               asp-route-projectId="@Model.project_id"
+               class="btn-primary-custom">
+                + Add Image
+            </a>
+        </div>
+
+        <div class="image-gallery">
+
+            @if (images.Any())
+            {
+                foreach (var image in images)
+                {
+                    <article class="image-card">
+
+                        <img src="@image.image_url"
+                             alt="@Model.project_title" />
+
+                        <div class="image-card-info">
+
+                            <div class="project-actions">
+
+                                <a asp-controller="ProjectImage"
+                                   asp-action="Edit"
+                                   asp-route-id="@image.image_id">
+                                    Edit
+                                </a>
+
+                                <a asp-controller="ProjectImage"
+                                   asp-action="Delete"
+                                   asp-route-id="@image.image_id"
+                                   class="delete-link">
+                                    Delete
+                                </a>
+
+                            </div>
+
+                        </div>
+
+                    </article>
+                }
+            }
+            else
+            {
+                <div class="empty-projects">
+                    <h3>No images yet</h3>
+                    <p>Add images to showcase this project.</p>
+                </div>
+            }
+
+        </div>
+
     </section>
 
     @if (!string.IsNullOrWhiteSpace(Model.video_url))
     {
-        <section class="details-section">
-            <h2>Project Video</h2>
+        <section class="section">
+            <div class="section-label">PROJECT VIDEO</div>
+
             <a href="@Model.video_url"
                target="_blank"
                rel="noopener noreferrer">
@@ -71,18 +111,17 @@
         </section>
     }
 
-    <div class="details-actions">
+    <div class="project-actions mt-4">
+
         <a asp-action="Edit"
-           asp-route-id="@Model.project_id"
-           class="btn-primary-custom">
+           asp-route-id="@Model.project_id">
             Edit Project
         </a>
 
-        <a asp-action="Delete"
-           asp-route-id="@Model.project_id"
-           class="btn-danger-custom">
-            Delete Project
+        <a asp-action="Index">
+            Back to Projects
         </a>
+
     </div>
 
 </div>

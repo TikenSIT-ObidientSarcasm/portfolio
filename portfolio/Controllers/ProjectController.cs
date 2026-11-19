@@ -31,14 +31,11 @@ public class ProjectController : Controller
         var images = await _projectImages.GetAllAsync();
 
         ViewBag.CourseLookup = courses.ToDictionary(
-            c => c.course_id,
-            c => c);
+            c => c.course_id, c => c);
 
         ViewBag.ProjectImages = images
             .GroupBy(i => i.project_id)
-            .ToDictionary(
-                group => group.Key,
-                group => group.ToList());
+            .ToDictionary(g => g.Key, g => g.ToList());
 
         return View(projects);
     }
@@ -50,13 +47,10 @@ public class ProjectController : Controller
         if (project == null)
             return NotFound();
 
-        ViewBag.Course = await _courses.GetByIdAsync(project.course_id);
+        ViewBag.Course = await _courses.GetByIdAsync(
+            project.course_id);
 
-        var images = await _projectImages.GetAllAsync();
-
-        ViewBag.Images = images
-            .Where(i => i.project_id == id)
-            .ToList();
+        ViewBag.Images = await _projectImages.GetByProjectIdAsync(id);
 
         return View(project);
     }
@@ -74,8 +68,7 @@ public class ProjectController : Controller
         string? ImageUrls)
     {
         var imageUrls = (ImageUrls ?? "")
-            .Split(
-                new[] { "\r\n", "\n" },
+            .Split(new[] { "\r\n", "\n" },
                 StringSplitOptions.RemoveEmptyEntries)
             .Select(url => url.Trim())
             .Where(url => url.Length > 0)
@@ -92,38 +85,34 @@ public class ProjectController : Controller
 
         try
         {
-            await _projects.AddProjectWithImagesAsync(project, imageUrls);
+            await _projects.AddProjectWithImagesAsync(
+                project, imageUrls);
 
             return RedirectToAction(nameof(Index));
         }
         catch (PostgresException ex) when (ex.SqlState == "23503")
         {
             ModelState.AddModelError(
-                "course_id",
-                "The selected course does not exist.");
+                "course_id", "The selected course does not exist.");
         }
         catch (PostgresException ex) when (ex.SqlState == "23505")
         {
             ModelState.AddModelError(
-                "ImageUrls",
-                "A duplicate image URL was found for this project.");
+                "ImageUrls", "A duplicate image URL was found.");
         }
         catch (PostgresException ex) when (ex.SqlState == "23514")
         {
             ModelState.AddModelError(
-                "",
-                "One or more project details do not satisfy the database rules.");
+                "", "Some project details violate database rules.");
         }
         catch (Exception)
         {
             ModelState.AddModelError(
-                "",
-                "Something went wrong while saving the project.");
+                "", "Something went wrong while saving the project.");
         }
 
         ViewData["ImageUrls"] = ImageUrls;
         await LoadCourses();
-
         return View(project);
     }
 
@@ -150,7 +139,8 @@ public class ProjectController : Controller
             return View(project);
         }
 
-        var existing = await _projects.GetByIdAsync(project.project_id);
+        var existing = await _projects.GetByIdAsync(
+            project.project_id);
 
         if (existing == null)
             return NotFound();
@@ -158,25 +148,24 @@ public class ProjectController : Controller
         try
         {
             await _projects.UpdateAsync(project);
-            return RedirectToAction(nameof(Index));
+
+            return RedirectToAction(nameof(Details),
+                new { id = project.project_id });
         }
         catch (PostgresException ex) when (ex.SqlState == "23503")
         {
             ModelState.AddModelError(
-                "course_id",
-                "The selected course does not exist.");
+                "course_id", "The selected course does not exist.");
         }
         catch (PostgresException ex) when (ex.SqlState == "23514")
         {
             ModelState.AddModelError(
-                "",
-                "The project details do not satisfy the database rules.");
+                "", "The project details violate database rules.");
         }
         catch (Exception)
         {
             ModelState.AddModelError(
-                "",
-                "Something went wrong while updating the project.");
+                "", "Something went wrong while updating the project.");
         }
 
         await LoadCourses();
@@ -222,14 +211,11 @@ public class ProjectController : Controller
         var courses = await _courses.GetAllAsync();
 
         ViewBag.Courses = new SelectList(
-            courses,
-            "course_id",
-            "course_name");
+            courses, "course_id", "course_name");
     }
 
     private void ValidateProject(
-        Project project,
-        List<string> imageUrls)
+        Project project, List<string> imageUrls)
     {
         if (string.IsNullOrWhiteSpace(project.project_title) ||
             project.project_title.Trim().Length < 2)
@@ -240,20 +226,17 @@ public class ProjectController : Controller
         }
 
         if (!string.IsNullOrWhiteSpace(project.video_url) &&
-            !Regex.IsMatch(
-                project.video_url.Trim(),
+            !Regex.IsMatch(project.video_url.Trim(),
                 @"^https?://[^\s]+$",
                 RegexOptions.IgnoreCase))
         {
             ModelState.AddModelError(
-                "video_url",
-                "Enter a valid URL beginning with http:// or https://.");
+                "video_url", "Enter a valid video URL.");
         }
 
         for (int i = 0; i < imageUrls.Count; i++)
         {
-            if (!Regex.IsMatch(
-                imageUrls[i],
+            if (!Regex.IsMatch(imageUrls[i],
                 @"^https?://[^\s]+$",
                 RegexOptions.IgnoreCase))
             {

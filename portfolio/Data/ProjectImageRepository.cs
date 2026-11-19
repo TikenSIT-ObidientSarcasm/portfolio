@@ -49,6 +49,32 @@ public class ProjectImageRepository
         return images;
     }
 
+    // READ: Get all images belonging to one project.
+    public async Task<List<ProjectImage>> GetByProjectIdAsync(long projectId)
+    {
+        const string sql = @"
+        SELECT image_id, project_id, image_url
+        FROM public.project_image
+        WHERE project_id = @projectId
+        ORDER BY image_id;
+    ";
+
+        var images = new List<ProjectImage>();
+
+        await using var command = _dataSource.CreateCommand(sql);
+
+        command.Parameters.AddWithValue("projectId", projectId);
+
+        await using var reader = await command.ExecuteReaderAsync();
+
+        while (await reader.ReadAsync())
+        {
+            images.Add(ReadProjectImage(reader));
+        }
+
+        return images;
+    }
+
     // READ: Get one project image by ID.
     public async Task<ProjectImage?> GetByIdAsync(long id)
     {

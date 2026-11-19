@@ -1,53 +1,92 @@
-﻿@model portfolio.Models.ProjectImage
+﻿@model portfolio.Models.Project
 @using portfolio.Models
+@using System.Collections.Generic
 
 @{
-    ViewData["Title"] = "Image Details";
-    var project = ViewBag.Project as Project;
+    ViewData["Title"] = Model.project_title;
+
+    var images = ViewBag.ProjectImages as List<ProjectImage>
+                 ?? new List<ProjectImage>();
 }
 
 <div class="portfolio-page">
 
-    <a asp-action="Index" class="back-link">← Back to Project Images</a>
+    <section class="hero">
+        <div class="eyebrow">PROJECT DETAILS</div>
 
-    <div class="details-header">
-        <div class="section-label">IMAGE DETAILS</div>
-        <h1>Project Image</h1>
-    </div>
+        <h1>@Model.project_title.</h1>
 
-    <div class="image-detail-preview">
-        <img src="@Model.image_url" alt="Project image" />
-    </div>
-
-    <section class="details-section">
-        <h2>Associated Project</h2>
-
-        @if (project != null)
-        {
-            <a asp-controller="Project"
-               asp-action="Details"
-               asp-route-id="@project.project_id">
-                @project.project_title →
-            </a>
-        }
-        else
-        {
-            <p>No associated project found.</p>
-        }
+        <p>
+            @(string.IsNullOrWhiteSpace(Model.description)
+                ? "No description provided."
+                : Model.description)
+        </p>
     </section>
 
-    <div class="details-actions">
-        <a asp-action="Edit"
-           asp-route-id="@Model.image_id"
-           class="btn-primary-custom">
-            Edit Image
-        </a>
+    <section class="section">
 
-        <a asp-action="Delete"
-           asp-route-id="@Model.image_id"
-           class="btn-danger-custom">
-            Delete Image
-        </a>
-    </div>
+        <div class="section-heading">
+            <div>
+                <div class="section-label">PROJECT GALLERY</div>
+                <h2>Project Images</h2>
+                <p class="text-muted">
+                    @images.Count image(s)
+                </p>
+            </div>
+
+            <a asp-controller="ProjectImage"
+               asp-action="Create"
+               asp-route-projectId="@Model.project_id"
+               class="btn-primary-custom">
+                + Add Image
+            </a>
+        </div>
+
+        <div class="image-gallery">
+
+            @if (images.Any())
+            {
+                foreach (var image in images)
+                {
+                    <article class="image-card">
+
+                        <img src="@image.image_url"
+                             alt="@Model.project_title" />
+
+                        <div class="image-card-info">
+
+                            <div class="project-actions">
+
+                                <a asp-controller="ProjectImage"
+                                   asp-action="Edit"
+                                   asp-route-id="@image.image_id">
+                                    Edit
+                                </a>
+
+                                <a asp-controller="ProjectImage"
+                                   asp-action="Delete"
+                                   asp-route-id="@image.image_id"
+                                   class="delete-link">
+                                    Delete
+                                </a>
+
+                            </div>
+
+                        </div>
+
+                    </article>
+                }
+            }
+            else
+            {
+                <div class="empty-projects">
+                    <h3>No images yet</h3>
+                    <p>Add images to showcase this project.</p>
+                </div>
+            }
+
+        </div>
+
+    </section>
 
 </div>
