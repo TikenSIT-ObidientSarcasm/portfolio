@@ -1,6 +1,6 @@
 ﻿@model List<portfolio.Models.Project>
 @using portfolio.Models
-@using System.Collections.Generic
+@using Microsoft.AspNetCore.Mvc.Rendering
 
 @{
     ViewData["Title"] = "Projects";
@@ -10,16 +10,17 @@
 
     var projectImages = ViewBag.ProjectImages as Dictionary<long, List<ProjectImage>>
                         ?? new Dictionary<long, List<ProjectImage>>();
+
+    ViewBag.Courses = new SelectList(courses.Values, "course_id", "course_code");
 }
 
 <div class="portfolio-page">
 
     <section class="hero">
-        <div class="eyebrow">MY WORK & DEVELOPMENT</div>
-        <h1>Projects.</h1>
+        <div class="eyebrow">ඞඞඞඞඞඞඞඞ</div>
+        <h1>Projects Of Kharlsonn Virmar L. Tiken</h1>
         <p>
-            Explore my projects, applications, and other work.
-            Each project is connected to the course where it was developed.
+            ඞ Using Ai to refine my code :p.
         </p>
     </section>
 
@@ -30,13 +31,23 @@
                 <div class="section-label">PORTFOLIO COLLECTION</div>
                 <h2>All Projects</h2>
                 <p class="text-muted mb-0 mt-2">
-                    @Model.Count project(s) available
+                    @(Model?.Count ?? 0) project(s) available
                 </p>
             </div>
 
-            <a asp-action="Create" class="btn-primary-custom">
-                + Add Project
-            </a>
+            <div class="d-flex gap-2 flex-wrap">
+                <a asp-controller="ProjectImage"
+                   asp-action="Index"
+                   class="btn-primary-custom">
+                    Manage Images
+                </a>
+
+                <button type="button" class="btn-primary-custom"
+                        data-bs-toggle="modal"
+                        data-bs-target="#addProjectModal">
+                    + Add Project
+                </button>
+            </div>
         </div>
 
         <div class="project-grid">
@@ -61,12 +72,9 @@
 
                         @if (firstImage != null)
                         {
-                            <a asp-action="Details"
-                               asp-route-id="@project.project_id">
-                                <img class="project-card-image"
-                                     src="@firstImage.image_url"
-                                     alt="@project.project_title" />
-                            </a>
+                            <img class="project-card-image"
+                                 src="@firstImage.image_url"
+                                 alt="@project.project_title" />
                         }
                         else
                         {
@@ -113,11 +121,6 @@
                             </div>
 
                             <div class="project-actions">
-                                <a asp-action="Details"
-                                   asp-route-id="@project.project_id">
-                                    View Project →
-                                </a>
-
                                 <a asp-action="Edit"
                                    asp-route-id="@project.project_id">
                                     Edit
@@ -142,12 +145,40 @@
                     <h3>No projects yet</h3>
                     <p>Your added projects will appear here.</p>
 
-                    <a asp-action="Create" class="btn-primary-custom">
+                    <button type="button" class="btn-primary-custom"
+                            data-bs-toggle="modal"
+                            data-bs-target="#addProjectModal">
                         Add Your First Project
-                    </a>
+                    </button>
                 </div>
             }
 
         </div>
     </section>
+</div>
+
+
+<!-- Add Project Modal -->
+<div class="modal fade" id="addProjectModal" tabindex="-1"
+     aria-labelledby="addProjectModalLabel" aria-hidden="true">
+
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title" id="addProjectModalLabel">
+                    Add a Project
+                </h5>
+
+                <button type="button" class="btn-close"
+                        data-bs-dismiss="modal" aria-label="Close">
+                </button>
+            </div>  
+
+            <div class="modal-body">
+                <partial name="Create" model="new portfolio.Models.Project()" />
+            </div>
+
+        </div>
+    </div>
 </div>

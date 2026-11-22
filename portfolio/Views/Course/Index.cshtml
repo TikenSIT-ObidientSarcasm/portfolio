@@ -29,9 +29,10 @@
                 </p>
             </div>
 
-            <a asp-action="Create" class="btn-primary-custom">
+            <button type="button" class="btn-primary-custom"
+                    data-bs-toggle="modal" data-bs-target="#addCourseModal">
                 + Add Course
-            </a>
+            </button>
         </div>
 
         <div class="course-grid">
@@ -64,11 +65,6 @@
                             </div>
 
                             <div class="project-actions">
-                                <a asp-action="Details"
-                                   asp-route-id="@course.course_id">
-                                    View Course →
-                                </a>
-
                                 <a asp-action="Edit"
                                    asp-route-id="@course.course_id">
                                     Edit
@@ -91,12 +87,39 @@
                     <h3>No courses yet</h3>
                     <p>Added courses will appear here.</p>
 
-                    <a asp-action="Create" class="btn-primary-custom">
+                    <button type="button" class="btn-primary-custom"
+                            data-bs-toggle="modal" data-bs-target="#addCourseModal">
                         Add Your First Course
-                    </a>
+                    </button>
                 </div>
             }
 
         </div>
     </section>
+</div>
+
+
+<!-- Add Course Modal -->
+<div class="modal fade" id="addCourseModal" tabindex="-1"
+     aria-labelledby="addCourseModalLabel" aria-hidden="true">
+
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title" id="addCourseModalLabel">
+                    Add a Course
+                </h5>
+
+                <button type="button" class="btn-close"
+                        data-bs-dismiss="modal" aria-label="Close">
+                </button>
+            </div>
+
+            <div class="modal-body">
+                <partial name="Create" model="new portfolio.Models.Course()" />
+            </div>
+
+        </div>
+    </div>
 </div>

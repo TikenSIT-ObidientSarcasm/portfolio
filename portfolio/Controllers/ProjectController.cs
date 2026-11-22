@@ -13,15 +13,18 @@ public class ProjectController : Controller
     private readonly ProjectRepository _projects;
     private readonly CourseRepository _courses;
     private readonly ProjectImageRepository _projectImages;
+    private readonly ImageStorageService _storage;
 
     public ProjectController(
         ProjectRepository projects,
         CourseRepository courses,
-        ProjectImageRepository projectImages)
+        ProjectImageRepository projectImages,
+        ImageStorageService storage)
     {
         _projects = projects;
         _courses = courses;
         _projectImages = projectImages;
+        _storage = storage;
     }
 
     public async Task<IActionResult> Index()
@@ -40,21 +43,6 @@ public class ProjectController : Controller
         return View(projects);
     }
 
-    public async Task<IActionResult> Details(long id)
-    {
-        var project = await _projects.GetByIdAsync(id);
-
-        if (project == null)
-            return NotFound();
-
-        ViewBag.Course = await _courses.GetByIdAsync(
-            project.course_id);
-
-        ViewBag.Images = await _projectImages.GetByProjectIdAsync(id);
-
-        return View(project);
-    }
-
     public async Task<IActionResult> Create()
     {
         await LoadCourses();
@@ -65,53 +53,54 @@ public class ProjectController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(
         Project project,
-        string? ImageUrls)
+        List<IFormFile>? imageFiles)
     {
-        var imageUrls = (ImageUrls ?? "")
-            .Split(new[] { "\r\n", "\n" },
-                StringSplitOptions.RemoveEmptyEntries)
-            .Select(url => url.Trim())
-            .Where(url => url.Length > 0)
-            .ToList();
+        imageFiles ??= new List<IFormFile>();
+        imageFiles = imageFiles.Where(f => f.Length > 0).ToList();
 
-        ValidateProject(project, imageUrls);
+        ValidateProject(project, new List<string>());
+
+        foreach (var file in imageFiles)
+        {
+            var error = _storage.Validate(file);
+
+            if (error != null)
+                ModelState.AddModelError("imageFiles", error);
+        }
 
         if (!ModelState.IsValid)
         {
-            ViewData["ImageUrls"] = ImageUrls;
             await LoadCourses();
             return View(project);
         }
 
+        var uploadedUrls = new List<string>();
+
         try
         {
+            foreach (var file in imageFiles)
+                uploadedUrls.Add(await _storage.UploadAsync(file));
+
             await _projects.AddProjectWithImagesAsync(
-                project, imageUrls);
+                project, uploadedUrls);
 
             return RedirectToAction(nameof(Index));
         }
         catch (PostgresException ex) when (ex.SqlState == "23503")
         {
             ModelState.AddModelError(
-                "course_id", "The selected course does not exist.");
+                "course_id",
+                "The selected course does not exist.");
         }
-        catch (PostgresException ex) when (ex.SqlState == "23505")
+        catch (Exception ex)
         {
             ModelState.AddModelError(
-                "ImageUrls", "A duplicate image URL was found.");
-        }
-        catch (PostgresException ex) when (ex.SqlState == "23514")
-        {
-            ModelState.AddModelError(
-                "", "Some project details violate database rules.");
-        }
-        catch (Exception)
-        {
-            ModelState.AddModelError(
-                "", "Something went wrong while saving the project.");
+                "", $"Save failed: {ex.Message}");
         }
 
-        ViewData["ImageUrls"] = ImageUrls;
+        foreach (var url in uploadedUrls)
+            await _storage.DeleteByUrlAsync(url);
+
         await LoadCourses();
         return View(project);
     }
@@ -129,9 +118,22 @@ public class ProjectController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(Project project)
+    public async Task<IActionResult> Edit(
+        Project project,
+        List<IFormFile>? imageFiles)
     {
+        imageFiles ??= new List<IFormFile>();
+        imageFiles = imageFiles.Where(f => f.Length > 0).ToList();
+
         ValidateProject(project, new List<string>());
+
+        foreach (var file in imageFiles)
+        {
+            var error = _storage.Validate(file);
+
+            if (error != null)
+                ModelState.AddModelError("imageFiles", error);
+        }
 
         if (!ModelState.IsValid)
         {
@@ -139,8 +141,7 @@ public class ProjectController : Controller
             return View(project);
         }
 
-        var existing = await _projects.GetByIdAsync(
-            project.project_id);
+        var existing = await _projects.GetByIdAsync(project.project_id);
 
         if (existing == null)
             return NotFound();
@@ -149,23 +150,29 @@ public class ProjectController : Controller
         {
             await _projects.UpdateAsync(project);
 
-            return RedirectToAction(nameof(Details),
-                new { id = project.project_id });
+            foreach (var file in imageFiles)
+            {
+                var url = await _storage.UploadAsync(file);
+
+                await _projectImages.AddAsync(new ProjectImage
+                {
+                    project_id = project.project_id,
+                    image_url = url
+                });
+            }
+
+            return RedirectToAction(nameof(Index));
         }
         catch (PostgresException ex) when (ex.SqlState == "23503")
         {
             ModelState.AddModelError(
-                "course_id", "The selected course does not exist.");
+                "course_id",
+                "The selected course does not exist.");
         }
-        catch (PostgresException ex) when (ex.SqlState == "23514")
+        catch (Exception ex)
         {
             ModelState.AddModelError(
-                "", "The project details violate database rules.");
-        }
-        catch (Exception)
-        {
-            ModelState.AddModelError(
-                "", "Something went wrong while updating the project.");
+                "", $"Update failed: {ex.Message}");
         }
 
         await LoadCourses();
@@ -194,7 +201,16 @@ public class ProjectController : Controller
 
         try
         {
+            // Get the image URLs BEFORE deleting, because the cascade
+            // removes the image rows along with the project.
+            var images = await _projectImages.GetByProjectIdAsync(id);
+
             await _projects.DeleteAsync(id);
+
+            // Now remove the actual files from Supabase Storage.
+            foreach (var image in images)
+                await _storage.DeleteByUrlAsync(image.image_url);
+
             return RedirectToAction(nameof(Index));
         }
         catch (Exception)
@@ -226,7 +242,8 @@ public class ProjectController : Controller
         }
 
         if (!string.IsNullOrWhiteSpace(project.video_url) &&
-            !Regex.IsMatch(project.video_url.Trim(),
+            !Regex.IsMatch(
+                project.video_url.Trim(),
                 @"^https?://[^\s]+$",
                 RegexOptions.IgnoreCase))
         {
@@ -236,7 +253,8 @@ public class ProjectController : Controller
 
         for (int i = 0; i < imageUrls.Count; i++)
         {
-            if (!Regex.IsMatch(imageUrls[i],
+            if (!Regex.IsMatch(
+                imageUrls[i],
                 @"^https?://[^\s]+$",
                 RegexOptions.IgnoreCase))
             {
@@ -245,5 +263,10 @@ public class ProjectController : Controller
                     $"Image URL on line {i + 1} is invalid.");
             }
         }
+    }
+
+    public IActionResult Error()
+    {
+        return View();
     }
 }

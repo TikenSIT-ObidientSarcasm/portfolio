@@ -1,4 +1,3 @@
-
 using Npgsql;
 using portfolio.Data;
 
@@ -6,7 +5,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllersWithViews();
 
-// Existing PostgreSQL connection
+// PostgreSQL connection (used by the repositories)
 var connectionString =
     builder.Configuration.GetConnectionString("portfolio")
     ?? throw new InvalidOperationException(
@@ -24,13 +23,20 @@ var supabaseKey = builder.Configuration["Supabase:ServiceRoleKey"]
     ?? throw new InvalidOperationException(
         "Supabase service key was not found.");
 
-var supabase = new Supabase.Client(supabaseUrl, supabaseKey);
+var supabase = new Supabase.Client(
+    supabaseUrl,
+    supabaseKey,
+    new Supabase.SupabaseOptions
+    {
+        AutoConnectRealtime = false
+    });
 
 await supabase.InitializeAsync();
 
 builder.Services.AddSingleton(supabase);
 
-// Existing repositories
+// Repositories
+builder.Services.AddHttpClient<ImageStorageService>();
 builder.Services.AddScoped<CourseRepository>();
 builder.Services.AddScoped<ProjectRepository>();
 builder.Services.AddScoped<ProjectImageRepository>();

@@ -1,7 +1,4 @@
-﻿
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using Npgsql;
+﻿using Npgsql;
 using portfolio.Models;
 
 namespace portfolio.Data;
@@ -16,8 +13,7 @@ public class ProjectImageRepository
     }
 
     // Converts a database row into a ProjectImage object.
-    private static ProjectImage ReadProjectImage(
-        NpgsqlDataReader reader)
+    private static ProjectImage ReadProjectImage(NpgsqlDataReader reader)
     {
         return new ProjectImage
         {
@@ -53,16 +49,15 @@ public class ProjectImageRepository
     public async Task<List<ProjectImage>> GetByProjectIdAsync(long projectId)
     {
         const string sql = @"
-        SELECT image_id, project_id, image_url
-        FROM public.project_image
-        WHERE project_id = @projectId
-        ORDER BY image_id;
-    ";
+            SELECT image_id, project_id, image_url
+            FROM public.project_image
+            WHERE project_id = @projectId
+            ORDER BY image_id;
+        ";
 
         var images = new List<ProjectImage>();
 
         await using var command = _dataSource.CreateCommand(sql);
-
         command.Parameters.AddWithValue("projectId", projectId);
 
         await using var reader = await command.ExecuteReaderAsync();
@@ -85,7 +80,6 @@ public class ProjectImageRepository
         ";
 
         await using var command = _dataSource.CreateCommand(sql);
-
         command.Parameters.AddWithValue("id", id);
 
         await using var reader = await command.ExecuteReaderAsync();
@@ -110,11 +104,8 @@ public class ProjectImageRepository
 
         await using var command = _dataSource.CreateCommand(sql);
 
-        command.Parameters.AddWithValue(
-            "project_id", projectImage.project_id);
-
-        command.Parameters.AddWithValue(
-            "image_url", projectImage.image_url);
+        command.Parameters.AddWithValue("project_id", projectImage.project_id);
+        command.Parameters.AddWithValue("image_url", projectImage.image_url);
 
         await command.ExecuteNonQueryAsync();
     }
@@ -132,14 +123,9 @@ public class ProjectImageRepository
 
         await using var command = _dataSource.CreateCommand(sql);
 
-        command.Parameters.AddWithValue(
-            "project_id", projectImage.project_id);
-
-        command.Parameters.AddWithValue(
-            "image_url", projectImage.image_url);
-
-        command.Parameters.AddWithValue(
-            "id", projectImage.image_id);
+        command.Parameters.AddWithValue("project_id", projectImage.project_id);
+        command.Parameters.AddWithValue("image_url", projectImage.image_url);
+        command.Parameters.AddWithValue("id", projectImage.image_id);
 
         await command.ExecuteNonQueryAsync();
     }
@@ -153,7 +139,6 @@ public class ProjectImageRepository
         ";
 
         await using var command = _dataSource.CreateCommand(sql);
-
         command.Parameters.AddWithValue("id", id);
 
         await command.ExecuteNonQueryAsync();

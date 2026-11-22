@@ -13,17 +13,27 @@
     </div>
 
     <div class="admin-card">
-        <form asp-action="Edit" method="post">
+        <form asp-action="Edit" method="post" enctype="multipart/form-data">
             @Html.AntiForgeryToken()
 
             <input type="hidden" asp-for="project_id" />
 
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div asp-validation-summary="All" class="text-danger"></div>
 
             <div class="form-group">
                 <label asp-for="project_title">Project Title</label>
                 <input asp-for="project_title" class="form-control" />
                 <span asp-validation-for="project_title" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="course_id">Course</label>
+                <select asp-for="course_id"
+                        asp-items="ViewBag.Courses"
+                        class="form-select">
+                    <option value="">-- Select a Course --</option>
+                </select>
+                <span asp-validation-for="course_id" class="text-danger"></span>
             </div>
 
             <div class="form-group">
@@ -38,6 +48,15 @@
                 <span asp-validation-for="video_url" class="text-danger"></span>
             </div>
 
+            <div class="form-group">
+                <label>Add more images (optional, max 5 MB each)</label>
+                <input type="file" name="imageFiles" class="form-control"
+                       accept=".jpg,.jpeg,.png,.webp" multiple />
+                <small class="text-muted">
+                    To remove existing images, use the Project Images page.
+                </small>
+            </div>
+
             <div class="form-actions">
                 <button type="submit" class="admin-btn btn-primary-admin">
                     Save Changes
@@ -50,7 +69,3 @@
         </form>
     </div>
 </div>
-
-@section Scripts {
-    <partial name="_ValidationScriptsPartial" />
-}
