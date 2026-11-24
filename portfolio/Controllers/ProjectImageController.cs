@@ -1,8 +1,11 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using portfolio.Data;
 
 namespace portfolio.Controllers;
 
+// Editor only: every action in this controller requires login.
+[Authorize]
 public class ProjectImageController : Controller
 {
     private readonly ProjectImageRepository _projectImages;

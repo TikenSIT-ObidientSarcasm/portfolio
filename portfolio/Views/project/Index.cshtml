@@ -5,14 +5,62 @@
 @{
     ViewData["Title"] = "Projects";
 
+    // True only when the editor is logged in
+    var isEditor = User.Identity?.IsAuthenticated == true;
+
     var courses = ViewBag.CourseLookup as Dictionary<long, Course>
                   ?? new Dictionary<long, Course>();
 
     var projectImages = ViewBag.ProjectImages as Dictionary<long, List<ProjectImage>>
-                        ?? new Dictionary<long, List<ProjectImage>>();
+                    ?? new Dictionary<long, List<ProjectImage>>();
 
-    ViewBag.Courses = new SelectList(courses.Values, "course_id", "course_code");
+    ViewBag.Courses = new SelectList(courses.Values, "course_id", "course_name");
 }
+
+@* Small styles for the clickable cards and the popups *@
+<style>
+    .project-card[data-project-modal] {
+        cursor: pointer;
+    }
+
+        .project-card[data-project-modal]:hover {
+            transform: translateY(-3px);
+        }
+
+        .project-card[data-project-modal]:focus-visible {
+            outline: 2px solid currentColor;
+            outline-offset: 3px;
+        }
+
+    .project-modal-gallery {
+        background: #111;
+        border-radius: .5rem;
+        overflow: hidden;
+    }
+
+    .project-modal-image {
+        width: 100%;
+        max-height: 60vh;
+        object-fit: contain;
+    }
+
+    .project-modal-placeholder {
+        padding: 3rem 1rem;
+        text-align: center;
+        background: rgba(128, 128, 128, .15);
+        border-radius: .5rem;
+    }
+
+    /* The Edit / Delete items on a card are buttons now; make them look like the old links */
+    .project-actions button {
+        background: none;
+        border: 0;
+        padding: 0;
+        font: inherit;
+        color: inherit;
+        cursor: pointer;
+    }
+</style>
 
 <div class="portfolio-page">
 
@@ -35,19 +83,23 @@
                 </p>
             </div>
 
-            <div class="d-flex gap-2 flex-wrap">
-                <a asp-controller="ProjectImage"
-                   asp-action="Index"
-                   class="btn-primary-custom">
-                    Manage Images
-                </a>
+            @* Editor only: Manage Images and Add Project buttons *@
+            @if (isEditor)
+            {
+                <div class="d-flex gap-2 flex-wrap">
+                    <a asp-controller="ProjectImage"
+                       asp-action="Index"
+                       class="btn-primary-custom">
+                        Manage Images
+                    </a>
 
-                <button type="button" class="btn-primary-custom"
-                        data-bs-toggle="modal"
-                        data-bs-target="#addProjectModal">
-                    + Add Project
-                </button>
-            </div>
+                    <button type="button" class="btn-primary-custom"
+                            data-bs-toggle="modal"
+                            data-bs-target="#addProjectModal">
+                        + Add Project
+                    </button>
+                </div>
+            }
         </div>
 
         <div class="project-grid">
@@ -68,7 +120,11 @@
 
                     var firstImage = images.FirstOrDefault();
 
-                    <article class="project-card">
+                    @* Clicking the card opens that project's details popup
+                       (handled by the script at the bottom of this page) *@
+                    <article class="project-card"
+                             data-project-modal="#projectModal-@project.project_id"
+                             tabindex="0">
 
                         @if (firstImage != null)
                         {
@@ -120,18 +176,24 @@
                                 }
                             </div>
 
-                            <div class="project-actions">
-                                <a asp-action="Edit"
-                                   asp-route-id="@project.project_id">
-                                    Edit
-                                </a>
+                            @* Editor only: Edit and Delete open their own popups *@
+                            @if (isEditor)
+                            {
+                                <div class="project-actions">
+                                    <button type="button"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#editModal-@project.project_id">
+                                        Edit
+                                    </button>
 
-                                <a asp-action="Delete"
-                                   asp-route-id="@project.project_id"
-                                   class="delete-link">
-                                    Delete
-                                </a>
-                            </div>
+                                    <button type="button"
+                                            class="delete-link"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#deleteModal-@project.project_id">
+                                        Delete
+                                    </button>
+                                </div>
+                            }
 
                         </div>
                     </article>
@@ -143,13 +205,21 @@
             {
                 <div class="empty-projects">
                     <h3>No projects yet</h3>
-                    <p>Your added projects will appear here.</p>
 
-                    <button type="button" class="btn-primary-custom"
-                            data-bs-toggle="modal"
-                            data-bs-target="#addProjectModal">
-                        Add Your First Project
-                    </button>
+                    @if (isEditor)
+                    {
+                        <p>Your added projects will appear here.</p>
+
+                        <button type="button" class="btn-primary-custom"
+                                data-bs-toggle="modal"
+                                data-bs-target="#addProjectModal">
+                            Add Your First Project
+                        </button>
+                    }
+                    else
+                    {
+                        <p>Check back soon.</p>
+                    }
                 </div>
             }
 
@@ -157,28 +227,385 @@
     </section>
 </div>
 
+@* ===== PER-PROJECT POPUPS =====
+   For every project: a details popup (everyone), plus an Edit popup
+   and a Delete popup (editor only). *@
+@if (Model != null && Model.Any())
+{
+    var modalNumber = 1;
 
-<!-- Add Project Modal -->
-<div class="modal fade" id="addProjectModal" tabindex="-1"
-     aria-labelledby="addProjectModalLabel" aria-hidden="true">
+    foreach (var project in Model)
+    {
+        var course = courses.ContainsKey(project.course_id)
+            ? courses[project.course_id]
+            : null;
 
-    <div class="modal-dialog modal-dialog-centered modal-lg">
-        <div class="modal-content">
+        var images = projectImages.ContainsKey(project.project_id)
+            ? projectImages[project.project_id]
+            : new List<ProjectImage>();
 
-            <div class="modal-header">
-                <h5 class="modal-title" id="addProjectModalLabel">
-                    Add a Project
-                </h5>
+        @* ---------- DETAILS POPUP ---------- *@
+        <div class="modal fade" id="projectModal-@project.project_id"
+             tabindex="-1"
+             aria-labelledby="projectModalLabel-@project.project_id"
+             aria-hidden="true">
 
-                <button type="button" class="btn-close"
-                        data-bs-dismiss="modal" aria-label="Close">
-                </button>
-            </div>  
+            <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
+                <div class="modal-content">
 
-            <div class="modal-body">
-                <partial name="Create" model="new portfolio.Models.Project()" />
+                    <div class="modal-header">
+                        <div>
+                            <div class="project-number">
+                                PROJECT / @modalNumber.ToString("00")
+                            </div>
+
+                            <h5 class="modal-title"
+                                id="projectModalLabel-@project.project_id">
+                                @project.project_title
+                            </h5>
+                        </div>
+
+                        <button type="button" class="btn-close"
+                                data-bs-dismiss="modal" aria-label="Close">
+                        </button>
+                    </div>
+
+                    <div class="modal-body">
+
+                        @* Images: slideshow when there are several *@
+                        @if (images.Count > 1)
+                        {
+                            <div id="carousel-@project.project_id"
+                                 class="carousel slide project-modal-gallery mb-3">
+
+                                <div class="carousel-inner">
+                                    @for (var i = 0; i < images.Count; i++)
+                                    {
+                                        <div class="carousel-item @(i == 0 ? "active" : "")">
+                                            <img class="d-block project-modal-image"
+                                                 src="@images[i].image_url"
+                                                 alt="@project.project_title image @(i + 1)" />
+                                        </div>
+                                    }
+                                </div>
+
+                                <button class="carousel-control-prev" type="button"
+                                        data-bs-target="#carousel-@project.project_id"
+                                        data-bs-slide="prev">
+                                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                                    <span class="visually-hidden">Previous</span>
+                                </button>
+
+                                <button class="carousel-control-next" type="button"
+                                        data-bs-target="#carousel-@project.project_id"
+                                        data-bs-slide="next">
+                                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                                    <span class="visually-hidden">Next</span>
+                                </button>
+                            </div>
+
+                            <p class="text-muted small">
+                                @images.Count images. Use the arrows to browse.
+                            </p>
+                        }
+                        else if (images.Count == 1)
+                        {
+                            <div class="project-modal-gallery mb-3">
+                                <img class="project-modal-image"
+                                     src="@images[0].image_url"
+                                     alt="@project.project_title" />
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="project-modal-placeholder mb-3">
+                                No images for this project yet.
+                            </div>
+                        }
+
+                        @* Course *@
+                        @if (course != null)
+                        {
+                            <div class="project-course mb-2">
+                                @course.course_code · @course.course_name
+                            </div>
+                        }
+
+                        @* Description (keeps the line breaks you typed) *@
+                        <p style="white-space: pre-line;">
+                            @(string.IsNullOrWhiteSpace(project.description)
+                                    ? "No description provided."
+                                    : project.description)
+                        </p>
+
+                        @* Video link *@
+                        @if (!string.IsNullOrWhiteSpace(project.video_url))
+                        {
+                            <a href="@project.video_url"
+                               target="_blank"
+                               rel="noopener noreferrer"
+                               class="btn-primary-custom d-inline-block">
+                                Watch video
+                            </a>
+                        }
+
+                    </div>
+
+                    <div class="modal-footer">
+
+                        @* Editor only: switch from details to the Edit or Delete popup *@
+                        @if (isEditor)
+                        {
+                            <button type="button" class="btn btn-outline-secondary"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#editModal-@project.project_id">
+                                Edit
+                            </button>
+
+                            <button type="button" class="btn btn-outline-danger"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#deleteModal-@project.project_id">
+                                Delete
+                            </button>
+                        }
+
+                        <button type="button" class="btn btn-secondary"
+                                data-bs-dismiss="modal">
+                            Close
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        @if (isEditor)
+        {
+            @* ---------- EDIT POPUP (editor only) ----------
+               Posts to ProjectController.Edit. Fields use plain name="..."
+               so every popup can have its own unique ids.
+               If validation fails, the server shows the full Edit page
+               with the error messages. *@
+            <div class="modal fade" id="editModal-@project.project_id"
+                 tabindex="-1"
+                 aria-labelledby="editModalLabel-@project.project_id"
+                 aria-hidden="true">
+
+                <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
+                    <div class="modal-content">
+
+                        <form asp-controller="Project" asp-action="Edit"
+                              method="post" enctype="multipart/form-data">
+
+                            <div class="modal-header">
+                                <h5 class="modal-title"
+                                    id="editModalLabel-@project.project_id">
+                                    Edit Project
+                                </h5>
+
+                                <button type="button" class="btn-close"
+                                        data-bs-dismiss="modal" aria-label="Close">
+                                </button>
+                            </div>
+
+                            <div class="modal-body">
+
+                                @* Tells the controller which project is being edited *@
+                                <input type="hidden" name="project_id"
+                                       value="@project.project_id" />
+
+                                <div class="mb-3">
+                                    <label for="edit-title-@project.project_id"
+                                           class="form-label">Project Title</label>
+                                    <input id="edit-title-@project.project_id"
+                                           name="project_title"
+                                           value="@project.project_title"
+                                           class="form-control"
+                                           required minlength="2" />
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="edit-course-@project.project_id"
+                                           class="form-label">Course</label>
+                                    <select id="edit-course-@project.project_id"
+                                            name="course_id"
+                                            class="form-select" required>
+                                        <option value="">-- Select a Course --</option>
+                                        @foreach (var c in courses.Values.OrderBy(c => c.course_name))
+                                        {
+                                            <option value="@c.course_id"
+                                                    selected="@(c.course_id == project.course_id)">
+                                                @c.course_name
+                                            </option>
+                                        }
+                                    </select>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="edit-description-@project.project_id"
+                                           class="form-label">Description</label>
+                                    <textarea id="edit-description-@project.project_id"
+                                              name="description"
+                                              class="form-control"
+                                              rows="5">@project.description</textarea>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="edit-video-@project.project_id"
+                                           class="form-label">Video URL</label>
+                                    <input id="edit-video-@project.project_id"
+                                           name="video_url"
+                                           value="@project.video_url"
+                                           type="url"
+                                           class="form-control"
+                                           placeholder="https://www.youtube.com/watch?v=..." />
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="edit-images-@project.project_id"
+                                           class="form-label">
+                                        Add more images (optional, max 5 MB each)
+                                    </label>
+                                    <input id="edit-images-@project.project_id"
+                                           type="file" name="imageFiles"
+                                           class="form-control"
+                                           accept=".jpg,.jpeg,.png,.webp" multiple />
+                                    <small class="text-muted">
+                                        To remove existing images, use the Project Images page.
+                                    </small>
+                                </div>
+
+                            </div>
+
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary"
+                                        data-bs-dismiss="modal">
+                                    Cancel
+                                </button>
+
+                                <button type="submit" class="btn btn-primary">
+                                    Save Changes
+                                </button>
+                            </div>
+
+                        </form>
+                    </div>
+                </div>
             </div>
 
+            @* ---------- DELETE POPUP (editor only) ----------
+               Posts to ProjectController.DeleteConfirmed. *@
+            <div class="modal fade" id="deleteModal-@project.project_id"
+                 tabindex="-1"
+                 aria-labelledby="deleteModalLabel-@project.project_id"
+                 aria-hidden="true">
+
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+
+                        <div class="modal-header">
+                            <h5 class="modal-title"
+                                id="deleteModalLabel-@project.project_id">
+                                Delete Project
+                            </h5>
+
+                            <button type="button" class="btn-close"
+                                    data-bs-dismiss="modal" aria-label="Close">
+                            </button>
+                        </div>
+
+                        <div class="modal-body">
+                            <p>
+                                Are you sure you want to delete
+                                <strong>@project.project_title</strong>?
+                            </p>
+
+                            <p class="text-muted small mb-0">
+                                This permanently deletes the project
+                                @(images.Count > 0 ? $"and its {images.Count} image(s)" : "")
+                                and cannot be undone.
+                            </p>
+                        </div>
+
+                        <div class="modal-footer">
+                            <form asp-controller="Project" asp-action="Delete"
+                                  asp-route-id="@project.project_id"
+                                  method="post">
+
+                                <button type="button" class="btn btn-secondary"
+                                        data-bs-dismiss="modal">
+                                    Cancel
+                                </button>
+
+                                <button type="submit" class="btn btn-danger">
+                                    Delete
+                                </button>
+                            </form>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        }
+
+        modalNumber++;
+    }
+}
+
+@* Editor only: the Add Project modal is not sent to viewers at all *@
+@if (isEditor)
+{
+    <!-- Add Project Modal -->
+    <div class="modal fade" id="addProjectModal" tabindex="-1"
+         aria-labelledby="addProjectModalLabel" aria-hidden="true">
+
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addProjectModalLabel">
+                        Add a Project
+                    </h5>
+
+                    <button type="button" class="btn-close"
+                            data-bs-dismiss="modal" aria-label="Close">
+                    </button>
+                </div>
+
+                <div class="modal-body">
+                    <partial name="Create" model="new portfolio.Models.Project()" />
+                </div>
+
+            </div>
         </div>
     </div>
-</div>
+}
+
+@section Scripts {
+    <script>
+        // Clicking a project card opens its details popup, unless the click
+        // was on a button or link inside the card (Edit / Delete).
+        // Enter or Space also opens it for keyboard users.
+        document.querySelectorAll('.project-card[data-project-modal]')
+            .forEach(function (card) {
+                function openDetails() {
+                    var modalEl = document.querySelector(card.dataset.projectModal);
+                    if (modalEl) {
+                        bootstrap.Modal.getOrCreateInstance(modalEl).show();
+                    }
+                }
+
+                card.addEventListener('click', function (e) {
+                    if (e.target.closest('button, a')) return;
+                    openDetails();
+                });
+
+                card.addEventListener('keydown', function (e) {
+                    if ((e.key === 'Enter' || e.key === ' ') && e.target === card) {
+                        e.preventDefault();
+                        openDetails();
+                    }
+                });
+            });
+    </script>
+}

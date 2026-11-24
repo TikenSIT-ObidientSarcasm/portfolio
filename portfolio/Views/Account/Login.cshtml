@@ -1,0 +1,55 @@
+﻿@model portfolio.Models.LoginViewModel
+
+@{
+    ViewData["Title"] = "Access Terminal";
+}
+
+<div class="portfolio-page">
+
+    <section class="terminal">
+
+        @* Title bar of the terminal window *@
+        <div class="terminal-bar">
+            <span class="terminal-dots"><i></i><i></i><i></i></span>
+            <span>Access Terminal // Editor</span>
+        </div>
+
+        <div class="terminal-body">
+
+            <p class="terminal-line">&gt; AUTHENTICATION REQUIRED</p>
+            <p class="terminal-line dim">
+                &gt; ENTER CREDENTIALS TO CONTINUE<span class="cursor"></span>
+            </p>
+
+            @* The form tag helper adds the anti-forgery token automatically *@
+            <form asp-controller="Account" asp-action="Login" method="post">
+
+                @* Remembers which page to return to after logging in *@
+                <input type="hidden" asp-for="ReturnUrl" />
+
+                @* Shows "Invalid username or password." *@
+                <div asp-validation-summary="ModelOnly" class="terminal-error"></div>
+
+                <div class="mb-3">
+                    <label asp-for="Username" class="form-label">Username</label>
+                    <input asp-for="Username" class="form-control"
+                           autocomplete="username" />
+                    <span asp-validation-for="Username" class="text-danger"></span>
+                </div>
+
+                <div class="mb-4">
+                    <label asp-for="Password" class="form-label">Password</label>
+                    <input asp-for="Password" class="form-control"
+                           autocomplete="current-password" />
+                    <span asp-validation-for="Password" class="text-danger"></span>
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100">
+                    Authenticate
+                </button>
+            </form>
+
+        </div>
+    </section>
+
+</div>

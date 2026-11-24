@@ -4,6 +4,9 @@
 @{
     ViewData["Title"] = "Courses";
 
+    // True only when the editor is logged in
+    var isEditor = User.Identity?.IsAuthenticated == true;
+
     var projectCounts = ViewBag.ProjectCounts as Dictionary<long, int>
                         ?? new Dictionary<long, int>();
 }
@@ -29,10 +32,14 @@
                 </p>
             </div>
 
-            <button type="button" class="btn-primary-custom"
-                    data-bs-toggle="modal" data-bs-target="#addCourseModal">
-                + Add Course
-            </button>
+            @* Editor only: Add Course button *@
+            @if (isEditor)
+            {
+                <button type="button" class="btn-primary-custom"
+                        data-bs-toggle="modal" data-bs-target="#addCourseModal">
+                    + Add Course
+                </button>
+            }
         </div>
 
         <div class="course-grid">
@@ -64,18 +71,22 @@
                                 @count connected project(s)
                             </div>
 
-                            <div class="project-actions">
-                                <a asp-action="Edit"
-                                   asp-route-id="@course.course_id">
-                                    Edit
-                                </a>
+                            @* Editor only: Edit and Delete links *@
+                            @if (isEditor)
+                            {
+                                <div class="project-actions">
+                                    <a asp-action="Edit"
+                                       asp-route-id="@course.course_id">
+                                        Edit
+                                    </a>
 
-                                <a asp-action="Delete"
-                                   asp-route-id="@course.course_id"
-                                   class="delete-link">
-                                    Delete
-                                </a>
-                            </div>
+                                    <a asp-action="Delete"
+                                       asp-route-id="@course.course_id"
+                                       class="delete-link">
+                                        Delete
+                                    </a>
+                                </div>
+                            }
 
                         </div>
                     </article>
@@ -85,12 +96,20 @@
             {
                 <div class="empty-projects">
                     <h3>No courses yet</h3>
-                    <p>Added courses will appear here.</p>
 
-                    <button type="button" class="btn-primary-custom"
-                            data-bs-toggle="modal" data-bs-target="#addCourseModal">
-                        Add Your First Course
-                    </button>
+                    @if (isEditor)
+                    {
+                        <p>Added courses will appear here.</p>
+
+                        <button type="button" class="btn-primary-custom"
+                                data-bs-toggle="modal" data-bs-target="#addCourseModal">
+                            Add Your First Course
+                        </button>
+                    }
+                    else
+                    {
+                        <p>Check back soon.</p>
+                    }
                 </div>
             }
 
@@ -98,28 +117,31 @@
     </section>
 </div>
 
+@* Editor only: the Add Course modal is not sent to viewers at all *@
+@if (isEditor)
+{
+    <!-- Add Course Modal -->
+    <div class="modal fade" id="addCourseModal" tabindex="-1"
+         aria-labelledby="addCourseModalLabel" aria-hidden="true">
 
-<!-- Add Course Modal -->
-<div class="modal fade" id="addCourseModal" tabindex="-1"
-     aria-labelledby="addCourseModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
 
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addCourseModalLabel">
+                        Add a Course
+                    </h5>
 
-            <div class="modal-header">
-                <h5 class="modal-title" id="addCourseModalLabel">
-                    Add a Course
-                </h5>
+                    <button type="button" class="btn-close"
+                            data-bs-dismiss="modal" aria-label="Close">
+                    </button>
+                </div>
 
-                <button type="button" class="btn-close"
-                        data-bs-dismiss="modal" aria-label="Close">
-                </button>
+                <div class="modal-body">
+                    <partial name="Create" model="new portfolio.Models.Course()" />
+                </div>
+
             </div>
-
-            <div class="modal-body">
-                <partial name="Create" model="new portfolio.Models.Course()" />
-            </div>
-
         </div>
     </div>
-</div>
+}

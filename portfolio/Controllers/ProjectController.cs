@@ -1,13 +1,16 @@
-﻿
-using portfolio.Data;
+﻿using portfolio.Data;
 using portfolio.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Npgsql;
 using System.Text.RegularExpressions;
+using Microsoft.AspNetCore.Authorization;
 
 namespace portfolio.Controllers;
 
+// Everything in this controller requires the editor login,
+// except actions marked [AllowAnonymous] (Index and Error).
+[Authorize]
 public class ProjectController : Controller
 {
     private readonly ProjectRepository _projects;
@@ -27,6 +30,8 @@ public class ProjectController : Controller
         _storage = storage;
     }
 
+    // PUBLIC: viewers can see the project list
+    [AllowAnonymous]
     public async Task<IActionResult> Index()
     {
         var projects = await _projects.GetAllAsync();
@@ -43,12 +48,14 @@ public class ProjectController : Controller
         return View(projects);
     }
 
+    // EDITOR ONLY
     public async Task<IActionResult> Create()
     {
         await LoadCourses();
         return View(new Project());
     }
 
+    // EDITOR ONLY
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(
@@ -105,6 +112,7 @@ public class ProjectController : Controller
         return View(project);
     }
 
+    // EDITOR ONLY
     public async Task<IActionResult> Edit(long id)
     {
         var project = await _projects.GetByIdAsync(id);
@@ -116,6 +124,7 @@ public class ProjectController : Controller
         return View(project);
     }
 
+    // EDITOR ONLY
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Edit(
@@ -179,6 +188,7 @@ public class ProjectController : Controller
         return View(project);
     }
 
+    // EDITOR ONLY
     public async Task<IActionResult> Delete(long id)
     {
         var project = await _projects.GetByIdAsync(id);
@@ -190,6 +200,7 @@ public class ProjectController : Controller
         return View(project);
     }
 
+    // EDITOR ONLY
     [HttpPost, ActionName("Delete")]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> DeleteConfirmed(long id)
@@ -230,6 +241,7 @@ public class ProjectController : Controller
             courses, "course_id", "course_name");
     }
 
+    // Validate the project details and image URLs. Add errors to ModelState if invalid.
     private void ValidateProject(
         Project project, List<string> imageUrls)
     {
@@ -265,6 +277,8 @@ public class ProjectController : Controller
         }
     }
 
+    // PUBLIC: the error page must work for viewers too
+    [AllowAnonymous]
     public IActionResult Error()
     {
         return View();

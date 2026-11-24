@@ -1,12 +1,15 @@
-﻿
-using portfolio.Data;
+﻿using portfolio.Data;
 using portfolio.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using Npgsql;
 using System.Text.RegularExpressions;
 
 namespace portfolio.Controllers;
 
+// Everything here requires the editor login,
+// except actions marked [AllowAnonymous] (Index and Details).
+[Authorize]
 public class CourseController : Controller
 {
     private readonly CourseRepository _courses;
@@ -20,6 +23,8 @@ public class CourseController : Controller
         _projects = projects;
     }
 
+    // PUBLIC: viewers can see the course list
+    [AllowAnonymous]
     public async Task<IActionResult> Index()
     {
         var courses = await _courses.GetAllAsync();
@@ -37,6 +42,8 @@ public class CourseController : Controller
         return View(courses);
     }
 
+    // PUBLIC: read-only course details
+    [AllowAnonymous]
     public async Task<IActionResult> Details(long id)
     {
         var course = await _courses.GetByIdAsync(id);
@@ -49,11 +56,13 @@ public class CourseController : Controller
         return View(course);
     }
 
+    // EDITOR ONLY
     public IActionResult Create()
     {
         return View(new Course());
     }
 
+    // EDITOR ONLY
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(Course course)
@@ -90,6 +99,7 @@ public class CourseController : Controller
         return View(course);
     }
 
+    // EDITOR ONLY
     public async Task<IActionResult> Edit(long id)
     {
         var course = await _courses.GetByIdAsync(id);
@@ -100,6 +110,7 @@ public class CourseController : Controller
         return View(course);
     }
 
+    // EDITOR ONLY
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Edit(Course course)
@@ -141,6 +152,7 @@ public class CourseController : Controller
         return View(course);
     }
 
+    // EDITOR ONLY
     public async Task<IActionResult> Delete(long id)
     {
         var course = await _courses.GetByIdAsync(id);
@@ -151,6 +163,7 @@ public class CourseController : Controller
         return View(course);
     }
 
+    // EDITOR ONLY
     [HttpPost, ActionName("Delete")]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> DeleteConfirmed(long id)

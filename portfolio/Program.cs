@@ -1,9 +1,21 @@
 using Npgsql;
 using portfolio.Data;
+using Microsoft.AspNetCore.Authentication.Cookies;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllersWithViews();
+
+// Account authentication (cookie login for the editor)
+builder.Services
+    .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options =>
+    {
+        options.LoginPath = "/Account/Login";
+        options.AccessDeniedPath = "/Account/Login";
+        options.ExpireTimeSpan = TimeSpan.FromHours(8);
+        options.Cookie.HttpOnly = true;
+    });
 
 // PostgreSQL connection (used by the repositories)
 var connectionString =
@@ -52,7 +64,9 @@ if (!app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
-app.UseAuthorization();
+
+app.UseAuthentication();   // reads the login cookie (must come first)
+app.UseAuthorization();    // enforces [Authorize]
 
 app.MapControllerRoute(
     name: "default",

@@ -1,5 +1,4 @@
-﻿
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
@@ -13,6 +12,16 @@
 </head>
 
 <body>
+    @* Loading screen: shown once per visit. This tiny script hides it
+       on later pages so it doesn't replay on every click. *@
+    <script>
+            try {
+                if (sessionStorage.getItem('booted')) {
+                    document.documentElement.classList.add('no-boot');
+                }
+            } catch (e) { }
+    </script>
+
     <header class="site-header">
         <nav class="navbar navbar-expand-lg portfolio-nav">
             <div class="container">
@@ -48,11 +57,31 @@
                             Courses
                         </a>
 
-                        <a class="nav-link"
-                           asp-controller="ProjectImage"
-                           asp-action="Index">
-                            Project Images
-                        </a>
+                        @* Editor only: viewers don't see these *@
+                        @if (User.Identity?.IsAuthenticated == true)
+                        {
+                            <a class="nav-link"
+                               asp-controller="ProjectImage"
+                               asp-action="Index">
+                                Project Images
+                            </a>
+
+                            <form asp-controller="Account" asp-action="Logout"
+                                  method="post" class="d-inline">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="nav-link btn btn-link">
+                                    Logout
+                                </button>
+                            </form>
+                        }
+                        else
+                        {
+                            <a class="nav-link"
+                               asp-controller="Account"
+                               asp-action="Login">
+                                Editor Login
+                            </a>
+                        }
                     </div>
                 </div>
             </div>
