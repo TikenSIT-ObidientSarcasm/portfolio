@@ -1,83 +1,54 @@
 @model portfolio.Models.Project
 
-@* ===== PROJECT FORM =====
-   Posts to ProjectController.Create. enctype="multipart/form-data"
-   is required so the image files can be uploaded with the form. *@
 <form asp-controller="Project" asp-action="Create"
       method="post" enctype="multipart/form-data">
 
-    @* Security token: blocks cross-site request forgery.
-       Checked by [ValidateAntiForgeryToken] in the controller. *@
-    @Html.AntiForgeryToken()
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
-    @* Shows all validation errors in one list at the top of the form *@
-    <div asp-validation-summary="All" class="text-danger mb-3"></div>
-
-    @* ===== PROJECT TITLE =====
-       Required text. The controller checks it has at least 2 characters. *@
     <div class="mb-3">
-        <label asp-for="project_title" class="form-label">Project Title</label>
-        <input asp-for="project_title" class="form-control"
-               placeholder="Enter project title" />
-        <span asp-validation-for="project_title" class="text-danger"></span>
+        <label class="form-label">Project Title</label>
+        <input name="project_title" value="@Model.project_title"
+               class="form-control" required minlength="2" />
     </div>
 
-    @* ===== COURSE DROPDOWN =====
-       Options come from ViewBag.Courses (set in Index.cshtml).
-       Shows the course name, but saves the course_id. *@
     <div class="mb-3">
-        <label asp-for="course_id" class="form-label">Course</label>
-        <select asp-for="course_id"
-                asp-items="ViewBag.Courses"
-                class="form-select">
+        <label class="form-label">Course</label>
+        <select name="course_id" class="form-select" required
+                asp-items="(SelectList)ViewBag.Courses">
             <option value="">-- Select a Course --</option>
         </select>
-        <span asp-validation-for="course_id" class="text-danger"></span>
     </div>
 
-    @* ===== DESCRIPTION =====
-       Optional multi-line text describing the project *@
     <div class="mb-3">
-        <label asp-for="description" class="form-label">Description</label>
-        <textarea asp-for="description" class="form-control"
-                  rows="4" placeholder="Enter project description"></textarea>
-        <span asp-validation-for="description" class="text-danger"></span>
+        <label class="form-label">Description</label>
+        <textarea name="description" class="form-control"
+                  rows="5">@Model.description</textarea>
     </div>
 
-    @* ===== VIDEO URL =====
-       Optional link to a demo video. The controller checks that it
-       starts with http:// or https:// *@
     <div class="mb-3">
-        <label asp-for="video_url" class="form-label">Video URL</label>
-        <input asp-for="video_url" class="form-control"
+        <label class="form-label">Video URL</label>
+        <input name="video_url" value="@Model.video_url" type="url"
+               class="form-control"
                placeholder="https://www.youtube.com/watch?v=..." />
-        <span asp-validation-for="video_url" class="text-danger"></span>
     </div>
 
-    @* ===== IMAGE UPLOAD =====
-       Optional. Accepts several images at once (multiple).
-       The name "imageFiles" must match the List<IFormFile> imageFiles
-       parameter in the controller. Size and type are validated server-side
-       by ImageStorageService. *@
-    <div class="mb-4">
+    <div class="mb-3">
         <label class="form-label">Images (optional, max 5 MB each)</label>
         <input type="file" name="imageFiles" class="form-control"
                accept=".jpg,.jpeg,.png,.webp" multiple />
     </div>
 
-    @* ===== ACTION BUTTONS ===== *@
-    <div class="d-flex justify-content-end gap-2">
+    <div class="mb-3">
+        <label class="form-label">PDF document (optional, max 10 MB)</label>
+        <input type="file" name="pdfFile" class="form-control"
+               accept=".pdf,application/pdf" />
+    </div>
 
-        @* Cancel: closes the modal without submitting *@
+    <div class="d-flex gap-2">
+        <button type="submit" class="btn btn-primary">Save Project</button>
         <button type="button" class="btn btn-secondary"
                 data-bs-dismiss="modal">
             Cancel
         </button>
-
-        @* Save: submits the form to Create (POST) *@
-        <button type="submit" class="btn btn-primary">
-            Save Project
-        </button>
     </div>
-
 </form>

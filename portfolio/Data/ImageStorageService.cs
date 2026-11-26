@@ -7,6 +7,7 @@ public class ImageStorageService
 {
     private const string BucketName = "Project_image";
     private const long MaxFileSize = 5 * 1024 * 1024;
+    private const long MaxPdfSize = 10 * 1024 * 1024;
 
     private static readonly Dictionary<string, string> ContentTypes = new()
     {
@@ -33,7 +34,7 @@ public class ImageStorageService
             .Trim();
     }
 
-    // Returns an error message, or null if the file is fine.
+    // Returns an error message, or null if the image is fine.
     public string? Validate(IFormFile file)
     {
         if (file.Length > MaxFileSize)
@@ -48,6 +49,20 @@ public class ImageStorageService
         return null;
     }
 
+    // Returns an error message, or null if the PDF is fine.
+    public string? ValidatePdf(IFormFile file)
+    {
+        if (file.Length > MaxPdfSize)
+            return $"{file.FileName} is larger than 10 MB.";
+
+        var ext = Path.GetExtension(file.FileName).ToLowerInvariant();
+
+        if (ext != ".pdf" || file.ContentType != "application/pdf")
+            return $"{file.FileName} must be a PDF file.";
+
+        return null;
+    }
+
     private HttpRequestMessage CreateRequest(
         HttpMethod method, string url, HttpContent? content = null)
     {
@@ -58,18 +73,31 @@ public class ImageStorageService
         return request;
     }
 
-    // Uploads one file and returns its public URL.
+    // Uploads one image and returns its public URL.
     public async Task<string> UploadAsync(IFormFile file)
     {
         var ext = Path.GetExtension(file.FileName).ToLowerInvariant();
         var path = $"{Guid.NewGuid():N}{ext}";
 
+        return await SendUploadAsync(file, path, ContentTypes[ext], "Storage");
+    }
+
+    // Uploads one PDF and returns its public URL.
+    public async Task<string> UploadPdfAsync(IFormFile file)
+    {
+        var path = $"pdfs/{Guid.NewGuid():N}.pdf";
+
+        return await SendUploadAsync(file, path, "application/pdf", "PDF");
+    }
+
+    private async Task<string> SendUploadAsync(
+        IFormFile file, string path, string contentType, string label)
+    {
         using var ms = new MemoryStream();
         await file.CopyToAsync(ms);
 
         using var content = new ByteArrayContent(ms.ToArray());
-        content.Headers.ContentType =
-            new MediaTypeHeaderValue(ContentTypes[ext]);
+        content.Headers.ContentType = new MediaTypeHeaderValue(contentType);
 
         using var request = CreateRequest(
             HttpMethod.Post,
@@ -84,7 +112,7 @@ public class ImageStorageService
         {
             var body = await response.Content.ReadAsStringAsync();
             throw new InvalidOperationException(
-                $"Storage upload failed ({(int)response.StatusCode}): {body}");
+                $"{label} upload failed ({(int)response.StatusCode}): {body}");
         }
 
         return $"{_baseUrl}/storage/v1/object/public/{BucketName}/{path}";

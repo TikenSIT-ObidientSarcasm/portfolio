@@ -142,6 +142,13 @@
                                         · Video available
                                     </span>
                                 }
+
+                                @if (!string.IsNullOrWhiteSpace(project.pdf_url))
+                                {
+                                    <span class="text-muted small">
+                                        · PDF available
+                                    </span>
+                                }
                             </div>
 
                             @* Editor only: Edit and Delete open their own popups *@
@@ -322,8 +329,7 @@
                         {
                             <div class="ratio ratio-16x9 mb-3"
                                  style="border: 1px solid var(--brass); background: #000;">
-                                <iframe class="project-video"
-                                        data-src="https://www.youtube.com/embed/@videoId"
+                                <iframe data-src="https://www.youtube.com/embed/@videoId"
                                         title="@project.project_title demo"
                                         allowfullscreen></iframe>
                             </div>
@@ -335,6 +341,25 @@
                                rel="noopener noreferrer"
                                class="btn-primary-custom d-inline-block">
                                 Watch video
+                            </a>
+                        }
+
+                        @* PDF viewer. Loads only while the popup is open. *@
+                        @if (!string.IsNullOrWhiteSpace(project.pdf_url))
+                        {
+                            <div class="section-label mb-2 mt-3">DOCUMENT</div>
+
+                            <div class="ratio mb-2"
+                                 style="--bs-aspect-ratio: 130%; border: 1px solid var(--brass); background: #000;">
+                                <iframe data-src="@project.pdf_url"
+                                        title="@project.project_title PDF"></iframe>
+                            </div>
+
+                            <a href="@project.pdf_url"
+                               target="_blank"
+                               rel="noopener noreferrer"
+                               class="btn-primary-custom d-inline-block">
+                                Open PDF in new tab
                             </a>
                         }
 
@@ -464,6 +489,27 @@
                                     </small>
                                 </div>
 
+                                <div class="mb-3">
+                                    <label for="edit-pdf-@project.project_id"
+                                           class="form-label">
+                                        @(string.IsNullOrEmpty(project.pdf_url)
+                                            ? "PDF document (optional, max 10 MB)"
+                                            : "Replace PDF (optional, max 10 MB)")
+                                    </label>
+                                    <input id="edit-pdf-@project.project_id"
+                                           type="file" name="pdfFile"
+                                           class="form-control"
+                                           accept=".pdf,application/pdf" />
+                                    @if (!string.IsNullOrEmpty(project.pdf_url))
+                                    {
+                                        <small class="text-muted">
+                                            A PDF is already attached.
+                                            <a href="@project.pdf_url" target="_blank"
+                                               rel="noopener noreferrer">View current</a>
+                                        </small>
+                                    }
+                                </div>
+
                             </div>
 
                             <div class="modal-footer">
@@ -512,6 +558,7 @@
                             <p class="text-muted small mb-0">
                                 This permanently deletes the project
                                 @(images.Count > 0 ? $"and its {images.Count} image(s)" : "")
+                                @(!string.IsNullOrWhiteSpace(project.pdf_url) ? "and its PDF" : "")
                                 and cannot be undone.
                             </p>
                         </div>
@@ -548,7 +595,7 @@
     <div class="modal fade" id="addProjectModal" tabindex="-1"
          aria-labelledby="addProjectModalLabel" aria-hidden="true">
 
-        <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
             <div class="modal-content">
 
                 <div class="modal-header">
@@ -597,18 +644,18 @@
                 });
             });
 
-        // Load the YouTube player only while its popup is open.
-        // Closing the popup stops the video.
+        // Load embedded players (YouTube, PDF) only while their popup is open.
+        // Closing the popup unloads them (this also stops the video).
         document.querySelectorAll('.modal').forEach(function (modal) {
-            var frame = modal.querySelector('.project-video');
-            if (!frame) return;
+            var frames = modal.querySelectorAll('iframe[data-src]');
+            if (!frames.length) return;
 
             modal.addEventListener('show.bs.modal', function () {
-                frame.src = frame.dataset.src;
+                frames.forEach(function (f) { f.src = f.dataset.src; });
             });
 
             modal.addEventListener('hidden.bs.modal', function () {
-                frame.src = 'about:blank';
+                frames.forEach(function (f) { f.src = 'about:blank'; });
             });
         });
     </script>

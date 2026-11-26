@@ -60,10 +60,13 @@ public class ProjectController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(
         Project project,
-        List<IFormFile>? imageFiles)
+        List<IFormFile>? imageFiles,
+        IFormFile? pdfFile)
     {
         imageFiles ??= new List<IFormFile>();
         imageFiles = imageFiles.Where(f => f.Length > 0).ToList();
+
+        var hasPdf = pdfFile != null && pdfFile.Length > 0;
 
         ValidateProject(project, new List<string>());
 
@@ -75,18 +78,33 @@ public class ProjectController : Controller
                 ModelState.AddModelError("imageFiles", error);
         }
 
+        if (hasPdf)
+        {
+            var pdfError = _storage.ValidatePdf(pdfFile!);
+
+            if (pdfError != null)
+                ModelState.AddModelError("pdfFile", pdfError);
+        }
+
         if (!ModelState.IsValid)
         {
             await LoadCourses();
             return View(project);
         }
 
-        var uploadedUrls = new List<string>();
+        var uploadedUrls = new List<string>();   // images
+        string? uploadedPdf = null;
 
         try
         {
             foreach (var file in imageFiles)
                 uploadedUrls.Add(await _storage.UploadAsync(file));
+
+            if (hasPdf)
+            {
+                uploadedPdf = await _storage.UploadPdfAsync(pdfFile!);
+                project.pdf_url = uploadedPdf;
+            }
 
             await _projects.AddProjectWithImagesAsync(
                 project, uploadedUrls);
@@ -105,8 +123,12 @@ public class ProjectController : Controller
                 "", $"Save failed: {ex.Message}");
         }
 
+        // The save failed: remove anything already uploaded
         foreach (var url in uploadedUrls)
             await _storage.DeleteByUrlAsync(url);
+
+        if (uploadedPdf != null)
+            await _storage.DeleteByUrlAsync(uploadedPdf);
 
         await LoadCourses();
         return View(project);
@@ -129,10 +151,13 @@ public class ProjectController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Edit(
         Project project,
-        List<IFormFile>? imageFiles)
+        List<IFormFile>? imageFiles,
+        IFormFile? pdfFile)
     {
         imageFiles ??= new List<IFormFile>();
         imageFiles = imageFiles.Where(f => f.Length > 0).ToList();
+
+        var hasPdf = pdfFile != null && pdfFile.Length > 0;
 
         ValidateProject(project, new List<string>());
 
@@ -142,6 +167,14 @@ public class ProjectController : Controller
 
             if (error != null)
                 ModelState.AddModelError("imageFiles", error);
+        }
+
+        if (hasPdf)
+        {
+            var pdfError = _storage.ValidatePdf(pdfFile!);
+
+            if (pdfError != null)
+                ModelState.AddModelError("pdfFile", pdfError);
         }
 
         if (!ModelState.IsValid)
@@ -155,9 +188,24 @@ public class ProjectController : Controller
         if (existing == null)
             return NotFound();
 
+        string? newPdf = null;
+
         try
         {
+            // Keep the current PDF unless a new one was chosen
+            project.pdf_url = existing.pdf_url;
+
+            if (hasPdf)
+            {
+                newPdf = await _storage.UploadPdfAsync(pdfFile!);
+                project.pdf_url = newPdf;
+            }
+
             await _projects.UpdateAsync(project);
+
+            // The old PDF was replaced, so remove its file
+            if (newPdf != null && !string.IsNullOrEmpty(existing.pdf_url))
+                await _storage.DeleteByUrlAsync(existing.pdf_url);
 
             foreach (var file in imageFiles)
             {
@@ -221,6 +269,9 @@ public class ProjectController : Controller
             // Now remove the actual files from Supabase Storage.
             foreach (var image in images)
                 await _storage.DeleteByUrlAsync(image.image_url);
+
+            if (!string.IsNullOrEmpty(project.pdf_url))
+                await _storage.DeleteByUrlAsync(project.pdf_url);
 
             return RedirectToAction(nameof(Index));
         }

@@ -1,5 +1,4 @@
-﻿
-using portfolio.Models;
+﻿using portfolio.Models;
 using Npgsql;
 
 namespace portfolio.Data;
@@ -23,7 +22,8 @@ public class ProjectRepository
             project_title = reader.GetString(2),
             description = reader.IsDBNull(3) ? null : reader.GetString(3),
             video_url = reader.IsDBNull(4) ? null : reader.GetString(4),
-            created_at = reader.IsDBNull(5) ? null : reader.GetDateTime(5)
+            created_at = reader.IsDBNull(5) ? null : reader.GetDateTime(5),
+            pdf_url = reader.IsDBNull(6) ? null : reader.GetString(6)
         };
     }
 
@@ -32,7 +32,7 @@ public class ProjectRepository
     {
         const string sql = @"
             SELECT project_id, course_id, project_title,
-                   description, video_url, created_at
+                   description, video_url, created_at, pdf_url
             FROM public.project
             ORDER BY created_at DESC;
         ";
@@ -55,7 +55,7 @@ public class ProjectRepository
     {
         const string sql = @"
             SELECT project_id, course_id, project_title,
-                   description, video_url, created_at
+                   description, video_url, created_at, pdf_url
             FROM public.project
             WHERE project_id = @id;
         ";
@@ -78,7 +78,7 @@ public class ProjectRepository
     {
         const string sql = @"
             SELECT project_id, course_id, project_title,
-                   description, video_url, created_at
+                   description, video_url, created_at, pdf_url
             FROM public.project
             WHERE course_id = @courseId
             ORDER BY created_at DESC;
@@ -104,9 +104,9 @@ public class ProjectRepository
     {
         const string sql = @"
             INSERT INTO public.project
-                (course_id, project_title, description, video_url)
+                (course_id, project_title, description, video_url, pdf_url)
             VALUES
-                (@course_id, @project_title, @description, @video_url)
+                (@course_id, @project_title, @description, @video_url, @pdf_url)
             RETURNING project_id;
         ";
 
@@ -120,6 +120,9 @@ public class ProjectRepository
         command.Parameters.AddWithValue(
             "video_url",
             (object?)project.video_url ?? DBNull.Value);
+        command.Parameters.AddWithValue(
+            "pdf_url",
+            (object?)project.pdf_url ?? DBNull.Value);
 
         var result = await command.ExecuteScalarAsync();
 
@@ -135,7 +138,8 @@ public class ProjectRepository
                 course_id = @course_id,
                 project_title = @project_title,
                 description = @description,
-                video_url = @video_url
+                video_url = @video_url,
+                pdf_url = @pdf_url
             WHERE project_id = @id;
         ";
 
@@ -149,6 +153,9 @@ public class ProjectRepository
         command.Parameters.AddWithValue(
             "video_url",
             (object?)project.video_url ?? DBNull.Value);
+        command.Parameters.AddWithValue(
+            "pdf_url",
+            (object?)project.pdf_url ?? DBNull.Value);
         command.Parameters.AddWithValue("id", project.project_id);
 
         await command.ExecuteNonQueryAsync();
@@ -184,9 +191,9 @@ public class ProjectRepository
         {
             const string projectSql = @"
                 INSERT INTO public.project
-                    (course_id, project_title, description, video_url)
+                    (course_id, project_title, description, video_url, pdf_url)
                 VALUES
-                    (@course_id, @project_title, @description, @video_url)
+                    (@course_id, @project_title, @description, @video_url, @pdf_url)
                 RETURNING project_id;
             ";
 
@@ -204,6 +211,9 @@ public class ProjectRepository
                 command.Parameters.AddWithValue(
                     "video_url",
                     (object?)project.video_url ?? DBNull.Value);
+                command.Parameters.AddWithValue(
+                    "pdf_url",
+                    (object?)project.pdf_url ?? DBNull.Value);
 
                 projectId = (long)(await command.ExecuteScalarAsync())!;
             }
