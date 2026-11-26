@@ -12,21 +12,37 @@
 </head>
 
 <body>
-    @* Loading screen: shown once per visit. This tiny script hides it
-       on later pages so it doesn't replay on every click. *@
+    @* Loading screen: shown once per browser tab. This tiny script hides it
+       on later pages so it doesn't replay on every click.
+       To see it again: open a new tab, or add ?boot=1 to the address. *@
     <script>
             try {
-                if (sessionStorage.getItem('booted')) {
+                var forced = /[?&]boot(=|&|$)/.test(window.location.search);
+
+                if (sessionStorage.getItem('booted') && !forced) {
                     document.documentElement.classList.add('no-boot');
                 }
             } catch (e) { }
     </script>
 
+    <div class="boot-screen" aria-hidden="true">
+        <div class="boot-gear"></div>
+        <div class="boot-title">PORTFOLIO<span>.</span></div>
+
+        <ul class="boot-log">
+            <li><span>FIRING BOILERS</span><b>OK</b></li>
+            <li><span>ENGAGING GEARS</span><b>OK</b></li>
+            <li><span>LOADING INTERFACE</span><b>OK</b></li>
+        </ul>
+
+        <div class="boot-bar"><i></i></div>
+    </div>
+
     <header class="site-header">
         <nav class="navbar navbar-expand-lg portfolio-nav">
             <div class="container">
                 <a class="navbar-brand portfolio-brand"
-                   asp-controller="Project"
+                   asp-controller="Home"
                    asp-action="Index">
                     PORTFOLIO<span>.</span>
                 </a>
@@ -45,6 +61,12 @@
                      id="portfolioNavigation">
 
                     <div class="navbar-nav ms-auto align-items-lg-center">
+                        <a class="nav-link"
+                           asp-controller="Home"
+                           asp-action="Index">
+                            Home
+                        </a>
+
                         <a class="nav-link"
                            asp-controller="Project"
                            asp-action="Index">
@@ -79,7 +101,7 @@
                             <a class="nav-link"
                                asp-controller="Account"
                                asp-action="Login">
-                                Editor Login
+                                Login
                             </a>
                         }
                     </div>

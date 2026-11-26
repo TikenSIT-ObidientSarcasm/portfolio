@@ -21,7 +21,7 @@ public class AccountController : Controller
     public IActionResult Login(string? returnUrl = null)
     {
         if (User.Identity?.IsAuthenticated == true)
-            return RedirectToAction("Index", "Project");
+            return RedirectToAction("Index", "Home");
 
         return View(new LoginViewModel { ReturnUrl = returnUrl });
     }
@@ -64,7 +64,7 @@ public class AccountController : Controller
             Url.IsLocalUrl(model.ReturnUrl))
             return Redirect(model.ReturnUrl);
 
-        return RedirectToAction("Index", "Project");
+        return RedirectToAction("Index", "Home");
     }
 
     [HttpPost]
@@ -74,7 +74,7 @@ public class AccountController : Controller
         await HttpContext.SignOutAsync(
             CookieAuthenticationDefaults.AuthenticationScheme);
 
-        return RedirectToAction("Index", "Project");
+        return RedirectToAction("Index", "Home");
     }
 
     private static bool Same(string a, string b) =>

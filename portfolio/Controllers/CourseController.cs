@@ -30,14 +30,18 @@ public class CourseController : Controller
         var courses = await _courses.GetAllAsync();
 
         var projectCounts = new Dictionary<long, int>();
+        var courseProjects = new Dictionary<long, List<Project>>();
 
         foreach (var course in courses)
         {
             var projects = await _projects.GetByCourseIdAsync(course.course_id);
+
             projectCounts[course.course_id] = projects.Count;
+            courseProjects[course.course_id] = projects;
         }
 
         ViewBag.ProjectCounts = projectCounts;
+        ViewBag.CourseProjects = courseProjects;
 
         return View(courses);
     }

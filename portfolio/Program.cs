@@ -70,6 +70,6 @@ app.UseAuthorization();    // enforces [Authorize]
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Project}/{action=Index}/{id?}");
+    pattern: "{controller=Home}/{action=Index}/{id?}");
 
 app.Run();

@@ -1,0 +1,172 @@
+﻿@model List<portfolio.Models.Project>
+@using portfolio.Models
+
+@{
+    ViewData["Title"] = "Home";
+
+    var courses = ViewBag.CourseLookup as Dictionary<long, Course>
+                  ?? new Dictionary<long, Course>();
+
+    var projectImages = ViewBag.ProjectImages as Dictionary<long, List<ProjectImage>>
+                        ?? new Dictionary<long, List<ProjectImage>>();
+
+    var projectCount = (int)(ViewBag.ProjectCount ?? 0);
+    var courseCount = (int)(ViewBag.CourseCount ?? 0);
+    var imageCount = (int)(ViewBag.ImageCount ?? 0);
+}
+
+<div class="portfolio-page">
+
+    @* ===== HERO ===== *@
+    <section class="hero">
+        <div class="eyebrow">SYSTEM ONLINE</div>
+
+        @* Change the name and the line below to whatever you like *@
+        <h1>Welcome User</h1>
+
+        <p>
+            Developer portfolio: projects, coursework and creative work,
+            forged in brass and neon.
+        </p>
+
+        <div class="hero-actions">
+            <a asp-controller="Project" asp-action="Index"
+               class="btn-primary-custom">
+                View Projects
+            </a>
+
+            <a asp-controller="Course" asp-action="Index"
+               class="admin-btn btn-secondary-admin">
+                Browse Courses
+            </a>
+        </div>
+    </section>
+
+    @* ===== NUMBERS (count up when the page opens) ===== *@
+    <section class="stat-strip">
+        <div class="stat-panel">
+            <div class="stat-number" data-count="@projectCount">@projectCount</div>
+            <div class="stat-label">Projects</div>
+        </div>
+
+        <div class="stat-panel">
+            <div class="stat-number" data-count="@courseCount">@courseCount</div>
+            <div class="stat-label">Courses</div>
+        </div>
+
+        <div class="stat-panel">
+            <div class="stat-number" data-count="@imageCount">@imageCount</div>
+            <div class="stat-label">Images</div>
+        </div>
+    </section>
+
+    @* ===== LATEST PROJECTS (the 3 newest) ===== *@
+    <section class="section">
+
+        <div class="section-heading">
+            <div>
+                <div class="section-label">LATEST WORK</div>
+                <h2>Recent Projects</h2>
+            </div>
+
+            <a asp-controller="Project" asp-action="Index"
+               class="btn-primary-custom">
+                View All
+            </a>
+        </div>
+
+        <div class="project-grid">
+
+            @if (Model != null && Model.Any())
+            {
+                var number = 1;
+
+                foreach (var project in Model)
+                {
+                    var course = courses.ContainsKey(project.course_id)
+                        ? courses[project.course_id]
+                        : null;
+
+                    var images = projectImages.ContainsKey(project.project_id)
+                        ? projectImages[project.project_id]
+                        : new List<ProjectImage>();
+
+                    var firstImage = images.FirstOrDefault();
+
+                    @* Clicking a card goes to the Projects page *@
+                    <a class="project-card home-card"
+                       asp-controller="Project" asp-action="Index">
+
+                        @if (firstImage != null)
+                        {
+                            <img class="project-card-image"
+                                 src="@firstImage.image_url"
+                                 alt="@project.project_title" />
+                        }
+                        else
+                        {
+                            <div class="project-card-placeholder">
+                                NO IMAGE
+                            </div>
+                        }
+
+                        <div class="project-card-body">
+
+                            <div class="project-number">
+                                LATEST / @number.ToString("00")
+                            </div>
+
+                            <h3>@project.project_title</h3>
+
+                            @if (course != null)
+                            {
+                                <div class="project-course">
+                                    @course.course_code
+                                </div>
+                            }
+
+                            <p>
+                                @(string.IsNullOrWhiteSpace(project.description)
+                                    ? "No description provided."
+                                    : project.description)
+                            </p>
+
+                        </div>
+                    </a>
+
+                    number++;
+                }
+            }
+            else
+            {
+                <div class="empty-projects">
+                    <h3>No projects yet</h3>
+                    <p>Check back soon.</p>
+                </div>
+            }
+
+        </div>
+    </section>
+
+    @* ===== ABOUT PANEL =====
+       Replace the text in the terminal lines below with your own intro. *@
+    <section class="section">
+        <div class="terminal wide">
+
+            <div class="terminal-bar">
+                <span class="terminal-dots"><i></i><i></i><i></i></span>
+                <span>About // Profile</span>
+            </div>
+
+            <div class="terminal-body">
+                <p class="terminal-line">&gt; NAME: Kharlsonn Virmar L. Tiken</p>
+                <p class="terminal-line">&gt; ROLE: Developer</p>
+                <p class="terminal-line dim">
+                    &gt; Write a short intro about yourself here.<span class="cursor"></span>
+                </p>
+            </div>
+
+        </div>
+    </section>
+
+</div>

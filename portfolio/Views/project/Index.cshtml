@@ -17,48 +17,16 @@
     ViewBag.Courses = new SelectList(courses.Values, "course_id", "course_name");
 }
 
-@* Small styles for the clickable cards and the popups *@
+@* Only the styles that site.css doesn't already cover *@
 <style>
     .project-card[data-project-modal] {
         cursor: pointer;
-    }
-
-        .project-card[data-project-modal]:hover {
-            transform: translateY(-3px);
-        }
-
-        .project-card[data-project-modal]:focus-visible {
-            outline: 2px solid currentColor;
-            outline-offset: 3px;
-        }
-
-    .project-modal-gallery {
-        background: #111;
-        border-radius: .5rem;
-        overflow: hidden;
     }
 
     .project-modal-image {
         width: 100%;
         max-height: 60vh;
         object-fit: contain;
-    }
-
-    .project-modal-placeholder {
-        padding: 3rem 1rem;
-        text-align: center;
-        background: rgba(128, 128, 128, .15);
-        border-radius: .5rem;
-    }
-
-    /* The Edit / Delete items on a card are buttons now; make them look like the old links */
-    .project-actions button {
-        background: none;
-        border: 0;
-        padding: 0;
-        font: inherit;
-        color: inherit;
-        cursor: pointer;
     }
 </style>
 
@@ -244,6 +212,12 @@
             ? projectImages[project.project_id]
             : new List<ProjectImage>();
 
+        // Pulls the 11-character YouTube video id out of the saved link.
+        // Empty when the link isn't a YouTube link.
+        var videoId = System.Text.RegularExpressions.Regex.Match(
+            project.video_url ?? "",
+            @"(?:v=|youtu\.be/|shorts/)([A-Za-z0-9_-]{11})").Groups[1].Value;
+
         @* ---------- DETAILS POPUP ---------- *@
         <div class="modal fade" id="projectModal-@project.project_id"
              tabindex="-1"
@@ -331,15 +305,30 @@
                             </div>
                         }
 
-                        @* Description (keeps the line breaks you typed) *@
+                        @* Description (keeps the line breaks you typed).
+                           The text hugs the tags on purpose: any extra line
+                           break here would show up as a blank line. *@
                         <p style="white-space: pre-line;">
                             @(string.IsNullOrWhiteSpace(project.description)
                                     ? "No description provided."
                                     : project.description)
                         </p>
 
-                        @* Video link *@
-                        @if (!string.IsNullOrWhiteSpace(project.video_url))
+                        @* Video: a YouTube player when the link is a YouTube link,
+                           otherwise a plain "Watch video" button.
+                           The player only loads while this popup is open
+                           (data-src, see the script at the bottom). *@
+                        @if (videoId != "")
+                        {
+                            <div class="ratio ratio-16x9 mb-3"
+                                 style="border: 1px solid var(--brass); background: #000;">
+                                <iframe class="project-video"
+                                        data-src="https://www.youtube.com/embed/@videoId"
+                                        title="@project.project_title demo"
+                                        allowfullscreen></iframe>
+                            </div>
+                        }
+                        else if (!string.IsNullOrWhiteSpace(project.video_url))
                         {
                             <a href="@project.video_url"
                                target="_blank"
@@ -607,5 +596,20 @@
                     }
                 });
             });
+
+        // Load the YouTube player only while its popup is open.
+        // Closing the popup stops the video.
+        document.querySelectorAll('.modal').forEach(function (modal) {
+            var frame = modal.querySelector('.project-video');
+            if (!frame) return;
+
+            modal.addEventListener('show.bs.modal', function () {
+                frame.src = frame.dataset.src;
+            });
+
+            modal.addEventListener('hidden.bs.modal', function () {
+                frame.src = 'about:blank';
+            });
+        });
     </script>
 }

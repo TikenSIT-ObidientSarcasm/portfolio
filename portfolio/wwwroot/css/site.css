@@ -76,7 +76,7 @@ body {
         z-index: 1060;
         pointer-events: none;
         background: repeating-linear-gradient(0deg, rgba(0, 0, 0, .22) 0 1px, transparent 1px 3px);
-        opacity: .3;
+        opacity: .12;
     }
 
 a {
@@ -134,7 +134,7 @@ h1, h2, h3, h4, h5, h6 {
         height: 2px;
         background: linear-gradient(90deg, transparent, var(--brass), var(--neon), var(--cyan), transparent);
         background-size: 200% 100%;
-        animation: header-shimmer 8s linear infinite;
+        animation: header-shimmer 14s linear infinite;
     }
 
     .site-header.is-scrolled {
@@ -157,7 +157,7 @@ h1, h2, h3, h4, h5, h6 {
     .portfolio-brand span {
         color: var(--neon);
         text-shadow: 0 0 10px var(--neon);
-        animation: neon-flicker 5s infinite;
+        animation: neon-flicker 9s infinite;
     }
 
 .portfolio-nav .nav-link {
@@ -174,7 +174,7 @@ h1, h2, h3, h4, h5, h6 {
     .portfolio-nav .nav-link:hover,
     .portfolio-nav .nav-link:focus {
         color: var(--neon);
-        text-shadow: 0 0 8px rgba(252, 238, 10, .6);
+        text-shadow: 0 0 6px rgba(252, 238, 10, .35);
     }
 
         /* [ brackets ] appear around a hovered link */
@@ -262,7 +262,7 @@ h1, h2, h3, h4, h5, h6 {
         z-index: 0;
         pointer-events: none;
         background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Ccircle cx='100' cy='100' r='84' fill='none' stroke='%23b8863b' stroke-width='16' stroke-dasharray='11 11'/%3E%3Ccircle cx='100' cy='100' r='70' fill='none' stroke='%23b8863b' stroke-width='8'/%3E%3Cg stroke='%23b8863b' stroke-width='6'%3E%3Cpath d='M100 30V170M30 100H170M51 51L149 149M149 51L51 149'/%3E%3C/g%3E%3Ccircle cx='100' cy='100' r='16' fill='none' stroke='%23b8863b' stroke-width='6'/%3E%3C/svg%3E") center / contain no-repeat;
-        opacity: .08;
+        opacity: .05;
     }
 
     .portfolio-page::before {
@@ -308,7 +308,7 @@ h1, h2, h3, h4, h5, h6 {
     letter-spacing: .02em;
     line-height: 1.05;
     margin: 15px 0;
-    text-shadow: 0 0 22px rgba(252, 238, 10, .25);
+    text-shadow: 0 0 16px rgba(252, 238, 10, .12);
 }
 
 .hero p {
@@ -354,12 +354,12 @@ h1.glitch::after {
 
 h1.glitch::before {
     color: var(--cyan);
-    animation: glitch-a 6s infinite;
+    animation: glitch-a 12s infinite;
 }
 
 h1.glitch::after {
     color: var(--magenta);
-    animation: glitch-b 6s infinite;
+    animation: glitch-b 12s infinite;
 }
 
 /* =========================================================
@@ -467,7 +467,7 @@ h1.glitch::after {
     object-fit: cover;
     background: var(--iron);
     display: block;
-    filter: sepia(.4) contrast(1.05) saturate(1.1);
+    filter: sepia(.25) contrast(1.05) saturate(1.05);
     transition: filter .3s;
 }
 
@@ -555,7 +555,7 @@ h1.glitch::after {
     height: 230px;
     object-fit: cover;
     background: var(--iron);
-    filter: sepia(.4) contrast(1.05);
+    filter: sepia(.25) contrast(1.05);
     transition: filter .3s;
 }
 
@@ -908,7 +908,7 @@ h1.glitch::after {
         background-color: #1d1a15;
         border-color: var(--neon);
         color: var(--text);
-        box-shadow: 0 0 0 3px rgba(252, 238, 10, .15), 0 0 14px rgba(252, 238, 10, .15);
+        box-shadow: 0 0 0 3px rgba(252, 238, 10, .15), 0 0 12px rgba(252, 238, 10, .08);
     }
 
     .form-control::file-selector-button {
@@ -1081,7 +1081,7 @@ dl dd {
 
 .reveal {
     opacity: 0;
-    transform: translateY(18px);
+    transform: translateY(10px);
     transition: opacity .6s ease, transform .6s ease, border-color .25s, background .25s;
 }
 
@@ -1134,7 +1134,7 @@ dl dd {
     }
 
     20%, 64% {
-        opacity: .3;
+        opacity: .65;
     }
 }
 
@@ -1158,22 +1158,22 @@ dl dd {
 
     91% {
         clip-path: inset(20% 0 55% 0);
-        transform: translate(-4px, 0);
+        transform: translate(-2px, 0);
     }
 
     93% {
         clip-path: inset(60% 0 10% 0);
-        transform: translate(4px, 0);
+        transform: translate(2px, 0);
     }
 
     95% {
         clip-path: inset(40% 0 35% 0);
-        transform: translate(-3px, 0);
+        transform: translate(-1px, 0);
     }
 
     97% {
         clip-path: inset(10% 0 75% 0);
-        transform: translate(3px, 0);
+        transform: translate(1px, 0);
     }
 }
 
@@ -1185,22 +1185,22 @@ dl dd {
 
     92% {
         clip-path: inset(70% 0 5% 0);
-        transform: translate(4px, 0);
+        transform: translate(2px, 0);
     }
 
     94% {
         clip-path: inset(15% 0 60% 0);
-        transform: translate(-4px, 0);
+        transform: translate(-2px, 0);
     }
 
     96% {
         clip-path: inset(50% 0 30% 0);
-        transform: translate(3px, 0);
+        transform: translate(1px, 0);
     }
 
     98% {
         clip-path: inset(80% 0 0 0);
-        transform: translate(-3px, 0);
+        transform: translate(-1px, 0);
     }
 }
 
@@ -1260,3 +1260,467 @@ dl dd {
         right: -120px;
     }
 }
+
+/* =========================================================
+   POPUP: HUD FRAME AROUND THE IMAGE SLIDESHOW
+   (the script adds the IMG 01 / 03 counter)
+   ========================================================= */
+
+.project-modal-gallery {
+    position: relative;
+}
+
+    /* Neon corner brackets */
+    .project-modal-gallery::before {
+        content: '';
+        position: absolute;
+        inset: 10px;
+        z-index: 3;
+        pointer-events: none;
+        opacity: .85;
+        background: linear-gradient(var(--neon), var(--neon)) top left / 26px 2px no-repeat, linear-gradient(var(--neon), var(--neon)) top left / 2px 26px no-repeat, linear-gradient(var(--neon), var(--neon)) top right / 26px 2px no-repeat, linear-gradient(var(--neon), var(--neon)) top right / 2px 26px no-repeat, linear-gradient(var(--neon), var(--neon)) bottom left / 26px 2px no-repeat, linear-gradient(var(--neon), var(--neon)) bottom left / 2px 26px no-repeat, linear-gradient(var(--neon), var(--neon)) bottom right / 26px 2px no-repeat, linear-gradient(var(--neon), var(--neon)) bottom right / 2px 26px no-repeat;
+    }
+
+    /* A faint scan band sweeping down the image */
+    .project-modal-gallery::after {
+        content: '';
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: -60px;
+        height: 60px;
+        z-index: 2;
+        pointer-events: none;
+        background: linear-gradient(180deg, transparent, rgba(0, 240, 255, .07), transparent);
+        animation: hud-scan 6s linear infinite;
+    }
+
+.hud-counter {
+    position: absolute;
+    left: 16px;
+    bottom: 16px;
+    z-index: 4;
+    padding: 3px 9px;
+    color: var(--neon);
+    background: rgba(0, 0, 0, .7);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: .2em;
+    pointer-events: none;
+}
+
+@keyframes hud-scan {
+    from {
+        top: -60px;
+    }
+
+    to {
+        top: 100%;
+    }
+}
+
+/* =========================================================
+   LOGIN PAGE: ACCESS TERMINAL
+   ========================================================= */
+
+.terminal {
+    position: relative;
+    max-width: 460px;
+    margin: 20px auto 0;
+    background: linear-gradient(160deg, var(--plate), var(--gunmetal));
+    border: 1px solid var(--brass);
+    clip-path: var(--chamfer-lg);
+}
+
+    .terminal::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, var(--neon), var(--brass), var(--cyan));
+    }
+
+.terminal-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 18px;
+    background: var(--iron);
+    border-bottom: 1px dashed var(--border);
+    color: var(--brass-light);
+    font-family: var(--font-mono);
+    font-size: 13px;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+}
+
+.terminal-dots {
+    display: inline-flex;
+    gap: 6px;
+}
+
+    .terminal-dots i {
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        background: var(--brass);
+    }
+
+        .terminal-dots i:nth-child(1) {
+            background: var(--danger);
+        }
+
+        .terminal-dots i:nth-child(2) {
+            background: var(--neon);
+        }
+
+        .terminal-dots i:nth-child(3) {
+            background: var(--cyan);
+        }
+
+.terminal-body {
+    padding: 24px 26px 28px;
+}
+
+.terminal-line {
+    margin: 0 0 4px;
+    color: var(--neon);
+    font-family: var(--font-mono);
+    font-size: 14px;
+    letter-spacing: .1em;
+}
+
+    .terminal-line.dim {
+        color: var(--muted);
+        margin-bottom: 22px;
+    }
+
+.cursor {
+    display: inline-block;
+    width: .6em;
+    height: 1em;
+    margin-left: 6px;
+    vertical-align: -2px;
+    background: var(--neon);
+    animation: cursor-blink 1s steps(1) infinite;
+}
+
+.terminal-error ul {
+    list-style: none;
+    margin: 0 0 1rem;
+    padding: 0;
+}
+
+.terminal-error li {
+    padding: 8px 12px;
+    color: #ff8a8a;
+    background: rgba(255, 59, 59, .1);
+    border: 1px solid var(--danger);
+    font-family: var(--font-mono);
+    font-size: 14px;
+}
+
+    .terminal-error li::before {
+        content: '! ACCESS DENIED // ';
+        color: var(--danger);
+    }
+
+@keyframes cursor-blink {
+    50% {
+        opacity: 0;
+    }
+}
+
+/* =========================================================
+   LOADING SCREEN (shown once per visit)
+   ========================================================= */
+
+.boot-screen {
+    position: fixed;
+    inset: 0;
+    z-index: 2000;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 22px;
+    background: radial-gradient(ellipse at center, #1a1610 0, var(--void) 70%);
+    transition: opacity .5s ease, visibility 0s .5s;
+    /* Safety net: hides itself even if the script never runs */
+    animation: boot-failsafe .4s ease 4.5s forwards;
+}
+
+    .boot-screen.is-done {
+        opacity: 0;
+        visibility: hidden;
+    }
+
+.no-boot .boot-screen {
+    display: none;
+}
+
+.boot-gear {
+    width: 110px;
+    height: 110px;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Ccircle cx='100' cy='100' r='84' fill='none' stroke='%23e0b15a' stroke-width='16' stroke-dasharray='11 11'/%3E%3Ccircle cx='100' cy='100' r='70' fill='none' stroke='%23e0b15a' stroke-width='8'/%3E%3Cg stroke='%23e0b15a' stroke-width='6'%3E%3Cpath d='M100 30V170M30 100H170M51 51L149 149M149 51L51 149'/%3E%3C/g%3E%3Ccircle cx='100' cy='100' r='16' fill='none' stroke='%23e0b15a' stroke-width='6'/%3E%3C/svg%3E") center / contain no-repeat;
+    filter: drop-shadow(0 0 12px rgba(184, 134, 59, .5));
+    animation: gear-spin 4s linear infinite;
+}
+
+.boot-title {
+    color: var(--text);
+    font-size: 34px;
+    font-weight: 700;
+    letter-spacing: .3em;
+    text-transform: uppercase;
+    padding-left: .3em;
+}
+
+    .boot-title span {
+        color: var(--neon);
+        text-shadow: 0 0 10px var(--neon);
+    }
+
+.boot-log {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    min-width: 300px;
+    color: var(--muted);
+    font-family: var(--font-mono);
+    font-size: 14px;
+    letter-spacing: .1em;
+}
+
+    .boot-log li {
+        display: flex;
+        justify-content: space-between;
+        gap: 20px;
+        opacity: 0;
+        animation: boot-line .01s forwards;
+    }
+
+        .boot-log li:nth-child(1) {
+            animation-delay: .2s;
+        }
+
+        .boot-log li:nth-child(2) {
+            animation-delay: .6s;
+        }
+
+        .boot-log li:nth-child(3) {
+            animation-delay: 1s;
+        }
+
+    .boot-log b {
+        color: var(--neon);
+        font-weight: 400;
+    }
+
+.boot-bar {
+    width: min(320px, 70vw);
+    height: 8px;
+    padding: 1px;
+    border: 1px solid var(--brass);
+}
+
+    .boot-bar i {
+        display: block;
+        height: 100%;
+        width: 0;
+        background: linear-gradient(90deg, var(--brass), var(--neon));
+        animation: boot-fill 1.5s ease-out forwards;
+    }
+
+@keyframes boot-line {
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes boot-fill {
+    to {
+        width: 100%;
+    }
+}
+
+@keyframes boot-failsafe {
+    to {
+        opacity: 0;
+        visibility: hidden;
+    }
+}
+
+/* No loading screen for people who prefer reduced motion */
+@media (prefers-reduced-motion: reduce) {
+    .boot-screen {
+        display: none;
+    }
+}
+
+/* =========================================================
+   HOME PAGE
+   ========================================================= */
+
+.hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    margin-top: 30px;
+}
+
+.stat-strip {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 24px;
+    margin: 0 0 55px;
+}
+
+.stat-panel {
+    position: relative;
+    padding: 22px 24px;
+    background: linear-gradient(160deg, var(--plate), var(--gunmetal));
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--neon);
+    clip-path: var(--chamfer-br);
+}
+
+.stat-number {
+    color: var(--neon);
+    font-size: 52px;
+    font-weight: 700;
+    line-height: 1;
+    text-shadow: 0 0 14px rgba(252, 238, 10, .15);
+}
+
+.stat-label {
+    margin-top: 8px;
+    color: var(--muted);
+    font-family: var(--font-mono);
+    font-size: 13px;
+    letter-spacing: .2em;
+    text-transform: uppercase;
+}
+
+/* Project cards on the home page are links to the Projects page */
+.home-card {
+    display: block;
+    color: inherit;
+}
+
+    .home-card:hover {
+        color: inherit;
+    }
+
+    .home-card p {
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+/* The About panel uses the terminal look, full width */
+.terminal.wide {
+    max-width: none;
+    margin: 0;
+}
+
+@media (max-width: 600px) {
+    .stat-strip {
+        grid-template-columns: 1fr;
+    }
+}
+
+.project-grid .project-card p {
+    display: -webkit-box;
+    -webkit-line-clamp: 4;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* Popups whose <form> wraps the header, body and footer (Edit popup) */
+.modal-dialog-scrollable .modal-content > form {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    max-height: calc(100vh - 3.5rem);
+}
+
+.modal-dialog-scrollable .modal-content > form .modal-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+}
+
+/* Course card Edit / Delete buttons: same look as project cards */
+.course-card .project-actions button {
+    background: none;
+    border: 0;
+    padding: 0;
+    cursor: pointer;
+    color: var(--brass-light);
+    font-family: var(--font-mono);
+    font-size: 13px;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    text-decoration: none;
+    transition: color .2s, text-shadow .2s;
+}
+
+    .course-card .project-actions button:hover {
+        color: var(--neon);
+        text-shadow: 0 0 8px rgba(252, 238, 10, .5);
+    }
+
+.course-card .project-actions .delete-link {
+    color: var(--danger) !important;
+}
+
+    .course-card .project-actions .delete-link:hover {
+        text-shadow: 0 0 8px rgba(255, 59, 59, .6) !important;
+    }
+
+/* Image card Delete button: same look as project cards */
+.image-card .project-actions {
+    margin-top: 12px;
+    padding-top: 12px;
+}
+
+    .image-card .project-actions button {
+        background: none;
+        border: 0;
+        padding: 0;
+        cursor: pointer;
+        font-family: var(--font-mono);
+        font-size: 13px;
+        letter-spacing: .12em;
+        text-transform: uppercase;
+    }
+
+    .image-card .project-actions .delete-link {
+        color: var(--danger) !important;
+    }
+
+        .image-card .project-actions .delete-link:hover {
+            text-shadow: 0 0 8px rgba(255, 59, 59, .6);
+        }
+
+.course-card[data-course-modal] {
+    cursor: pointer;
+}
+
+.course-project-item {
+    padding: 12px 14px;
+    margin-bottom: 10px;
+    background: var(--iron);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--neon);
+}
+
+    .course-project-item h6 {
+        color: var(--text);
+        font-size: 16px;
+        margin: 0 0 4px;
+    }
